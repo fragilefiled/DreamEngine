@@ -18,12 +18,9 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="DreamEngine.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DreamEngine.h">
+    <ClInclude Include="DreamEngine.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="FileOperation.h">
