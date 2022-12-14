@@ -1,5 +1,5 @@
 ﻿  main.cpp
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(238,23): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(245,15): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(471): warning C4715: “Dream::DreamEngine::createSurface”: 不是所有的控件路径都返回值
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(247,23): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(254,15): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(481): warning C4715: “Dream::DreamEngine::createSurface”: 不是所有的控件路径都返回值
   DreamEngine.vcxproj -> E:\AboutLearningSecond\Dream\DreamEngine\x64\Debug\DreamEngine.exe
