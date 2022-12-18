@@ -31,6 +31,7 @@
 #include <chrono>
 #include "GraphicsInstance.hpp"
 #include "GraphicsDevice.hpp"
+#include "GraphicsSwapChain.hpp"
 namespace Dream {
 	class DreamEngine
 	{
@@ -121,7 +122,8 @@ namespace Dream {
 				//pickPhysicDevice();
 				//createLogicDevice();
 				createGraphicsDevice();
-				createSwapChain();
+				//createSwapChain();
+				createGraphicsSwapChain();
 				createImageViews();
 				createRenderPass();
 				createDescriptorSetLayout();
@@ -184,7 +186,7 @@ namespace Dream {
 				vkDestroyPipelineLayout(_device, _pipelineLayout, nullptr);
 				vkDestroyRenderPass(_device, _renderPass, nullptr);
 				
-				//vkDestroyDevice(_device, nullptr);
+				//  vkDestroyDevice(_device, nullptr);
 				
 				//vkDestroySurfaceKHR(_instance, _surface, nullptr);
 				//if (_enableValidationLayers)
@@ -198,8 +200,8 @@ namespace Dream {
 
 			void createInstanceAndSurface() {
 				graphicsInstance =std::make_shared<Graphics::GraphicsInstance>(_enableValidationLayers, _window);
-				_instance = (graphicsInstance->GetInstance());
-				_surface = graphicsInstance->GetSurface();
+				_instance = (graphicsInstance->getInstance());
+				_surface = graphicsInstance->getSurface();
 			}
 
 			void createGraphicsDevice() {
@@ -210,6 +212,14 @@ namespace Dream {
 				_presentQueue = graphicsDevice->getPresentQueue();
 			}
 
+			void createGraphicsSwapChain() {
+				graphicsSwapChain = std::make_shared<Graphics::GraphicsSwapChain>(graphicsInstance, graphicsDevice);
+				_swapChain = graphicsSwapChain->getswapChain();
+				_swapChainImages = graphicsSwapChain->getswapChainImages();
+				_swapChainImageViews = graphicsSwapChain->getswapChainImageViews();
+				_swapChainImageFormat = graphicsSwapChain->getswapChainImageFormat();
+				_swapChainExtent = graphicsSwapChain->getswapChainExtent();
+			}
 			bool checkExtensionSupport() 
 			{
 				uint32_t extensionCount = 0;
@@ -1573,6 +1583,7 @@ namespace Dream {
 
 			std::shared_ptr<Graphics::GraphicsInstance> graphicsInstance;
 			std::shared_ptr<Graphics::GraphicsDevice> graphicsDevice;
+			std::shared_ptr<Graphics::GraphicsSwapChain> graphicsSwapChain;
 	};
 }
 

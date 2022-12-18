@@ -60,7 +60,7 @@ namespace Graphics
 				createSurface();
 			}
 
-			VkInstance GetInstance() 
+			VkInstance getInstance() 
 			{
 				if (m_instance != VK_NULL_HANDLE)
 					return m_instance;
@@ -71,7 +71,7 @@ namespace Graphics
 				}
 
 			}
-			VkSurfaceKHR GetSurface()
+			VkSurfaceKHR getSurface()
 			{
 				if (m_surface != VK_NULL_HANDLE)
 					return m_surface;
@@ -81,6 +81,11 @@ namespace Graphics
 					return nullptr;
 				}
 
+			}
+
+			GLFWwindow* getGLTFWindow()
+			{
+				return m_window;
 			}
 			bool getValidationLayersEnable()
 			{

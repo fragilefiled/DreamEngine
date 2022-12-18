@@ -17,18 +17,18 @@ namespace Graphics
 		{
 			auto graphicsHelper = GraphicsUtil::getInstance();
 			uint32_t deviceCount = 0;
-			vkInstance = m_graphicsInstance->GetInstance();
-			vkSurface = m_graphicsInstance->GetSurface();
-			vkEnumeratePhysicalDevices(vkInstance, &deviceCount, nullptr);
+			m_vkInstance = m_graphicsInstance->getInstance();
+			m_vkSurface = m_graphicsInstance->getSurface();
+			vkEnumeratePhysicalDevices(m_vkInstance, &deviceCount, nullptr);
 
 			if (deviceCount == 0)
 				throw std::runtime_error("failed to find GPUs with Vulkan support!");
 			else {
 				std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
-				vkEnumeratePhysicalDevices(vkInstance, &deviceCount, physicalDevices.data());
+				vkEnumeratePhysicalDevices(m_vkInstance, &deviceCount, physicalDevices.data());
 				for (auto device : physicalDevices)
 				{
-					if (graphicsHelper->isDeviceSuitable(device, vkSurface)) {
+					if (graphicsHelper->isDeviceSuitable(device, m_vkSurface)) {
 						m_physicalDevice = device;
 						break;
 					}
@@ -39,7 +39,7 @@ namespace Graphics
 		}
 		void createLogicDevice() {
 			auto graphicsHelper = GraphicsUtil::getInstance();
-			GraphicsUtil::QueueFamilyIndices indices = graphicsHelper->findQueueFamilies(m_physicalDevice, vkSurface);
+			GraphicsUtil::QueueFamilyIndices indices = graphicsHelper->findQueueFamilies(m_physicalDevice, m_vkSurface);
 
 			std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 			std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
@@ -99,6 +99,11 @@ namespace Graphics
 		VkQueue getPresentQueue() {
 			return m_presentQueue;
 		}
+
+		std::shared_ptr<GraphicsInstance> getGraphicsInstance() 
+		{
+			return m_graphicsInstance;
+		}
 		
 	private:
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
@@ -106,8 +111,8 @@ namespace Graphics
 		VkQueue m_graphicsQueue;
 		VkQueue m_presentQueue;
 		VkDevice m_device;
-		VkSurfaceKHR vkSurface;
-		VkInstance vkInstance;
+		VkSurfaceKHR m_vkSurface;
+		VkInstance m_vkInstance;
 	};
 
 

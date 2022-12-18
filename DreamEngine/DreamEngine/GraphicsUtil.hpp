@@ -33,6 +33,7 @@ namespace Graphics
 
 			};
 
+
 			static GraphicsUtil* getInstance() {
 				if (m_instance == nullptr) {
 					m_instance = std::make_unique<GraphicsUtil>();
@@ -146,6 +147,41 @@ namespace Graphics
 				}
 				return indices;
 			};
+
+			VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+				for (auto availableFormat : availableFormats) {
+					if (availableFormat.colorSpace == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.format == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+						return availableFormat;
+				}
+				return availableFormats[0];//return default
+			}
+			VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
+				for (auto availablePresentMode : availablePresentModes) {
+					if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+						return availablePresentMode;
+				}
+				return VK_PRESENT_MODE_FIFO_KHR;;//return default
+			}
+			VkExtent2D chooseCapabilities(const VkSurfaceCapabilitiesKHR capabilities, GLFWwindow* window) {
+				if (capabilities.currentExtent.width != (std::numeric_limits<uint32_t>::max)()) {
+					return capabilities.currentExtent;
+				}
+				else {
+					int width, height;
+					glfwGetFramebufferSize(window, &width, &height);
+
+					VkExtent2D actualExtent = {
+						static_cast<uint32_t>(width),
+						static_cast<uint32_t>(height)
+					};
+
+					actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+					actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+					return actualExtent;
+				}
+			}
+
 			static void release() {
 				m_instance.reset();
 			}

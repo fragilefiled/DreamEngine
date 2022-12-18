@@ -145,6 +145,7 @@
     <ClInclude Include="FileOperation.h" />
     <ClInclude Include="GraphicsDevice.hpp" />
     <ClInclude Include="GraphicsInstance.hpp" />
+    <ClInclude Include="GraphicsSwapChain.hpp" />
     <ClInclude Include="GraphicsUtil.hpp" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Texture.h" />
