@@ -18,12 +18,36 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DreamEngine.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="FileOperation.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Device.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsUtil.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsInstance.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDevice.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

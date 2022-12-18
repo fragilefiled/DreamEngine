@@ -136,10 +136,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Device.hpp" />
     <ClInclude Include="DreamEngine.hpp" />
     <ClInclude Include="FileOperation.h" />
+    <ClInclude Include="GraphicsDevice.hpp" />
+    <ClInclude Include="GraphicsInstance.hpp" />
+    <ClInclude Include="GraphicsUtil.hpp" />
+    <ClInclude Include="Object.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

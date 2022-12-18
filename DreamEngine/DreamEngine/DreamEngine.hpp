@@ -29,12 +29,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <chrono>
+#include "GraphicsInstance.hpp"
+#include "GraphicsDevice.hpp"
 namespace Dream {
 	class DreamEngine
 	{
 		const int MAX_FRAMES_IN_FLIGHT = 2;
 		struct Vertex {
-			glm::vec2 pos;
+			glm::vec3 pos;
 			glm::vec3 color;
 			glm::vec2 texCoord;
 			static VkVertexInputBindingDescription getBindingDescription() {
@@ -48,7 +50,7 @@ namespace Dream {
 				std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 				attributeDescriptions[0].binding = 0;
 				attributeDescriptions[0].location = 0;
-				attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+				attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 				attributeDescriptions[0].offset = offsetof(Vertex, pos);
 
 				attributeDescriptions[1].binding = 0;
@@ -69,13 +71,20 @@ namespace Dream {
 			alignas(16) glm::mat4 proj;
 		};
 		const std::vector<Vertex> vertices = {
-			{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-			{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-			{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-			{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+			{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+			{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+			{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+			{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+
+			{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+			{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+			{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+			{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
 		};
+
 		const std::vector<uint16_t> indices = {
-			0, 1, 2, 2, 3, 0
+			0, 1, 2, 2, 3, 0,
+			4, 5, 6, 6, 7, 4
 		};
 
 		public :
@@ -105,19 +114,22 @@ namespace Dream {
 				app->framebufferResized = true;
 			}
 			void initVulkan() {
-				checkExtensionSupport();
-				createInstance();
-				setUpDebugMessenger();
-				createSurface(); // before physical device
-				pickPhysicDevice();
-				createLogicDevice();
+				Graphics::GraphicsUtil::getInstance()->checkExtensionSupport();
+				createInstanceAndSurface();
+				//setUpDebugMessenger();
+				//createSurface(); // before physical device
+				//pickPhysicDevice();
+				//createLogicDevice();
+				createGraphicsDevice();
 				createSwapChain();
 				createImageViews();
 				createRenderPass();
 				createDescriptorSetLayout();
 				createGraphicsPipline();
-				createFrameBuffers();
+				createDepthResources();
+				createFramebuffers();
 				createCommandPool();
+
 				createTextureImage();
 				createTextureImageView();
 				createTextureSampler();
@@ -172,64 +184,30 @@ namespace Dream {
 				vkDestroyPipelineLayout(_device, _pipelineLayout, nullptr);
 				vkDestroyRenderPass(_device, _renderPass, nullptr);
 				
-				vkDestroyDevice(_device, nullptr);
+				//vkDestroyDevice(_device, nullptr);
 				
-				vkDestroySurfaceKHR(_instance, _surface, nullptr);
-				if (_enableValidationLayers)
-					DestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
-				vkDestroyInstance(_instance, nullptr);
-				
+				//vkDestroySurfaceKHR(_instance, _surface, nullptr);
+				//if (_enableValidationLayers)
+				//	DestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
+				//vkDestroyInstance(_instance, nullptr);
+				graphicsDevice.reset();
+				graphicsInstance.reset();
 				glfwDestroyWindow(_window);
 				glfwTerminate();
 			}
 
-			void createInstance() {
-				if (_enableValidationLayers && !checkValidationLayerSupport()) {
-					throw std::runtime_error("validation layers requested , but not available");
-				}
+			void createInstanceAndSurface() {
+				graphicsInstance =std::make_shared<Graphics::GraphicsInstance>(_enableValidationLayers, _window);
+				_instance = (graphicsInstance->GetInstance());
+				_surface = graphicsInstance->GetSurface();
+			}
 
-				VkApplicationInfo appInfo{};
-				appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-				appInfo.pApplicationName = "Dream Engine Start";
-				appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-				appInfo.pEngineName = "NO Engine";
-				appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-				appInfo.apiVersion = VK_API_VERSION_1_3;// 升级这个不知道为什么有用Desu
-
-				VkInstanceCreateInfo createInfo{}; //指定全局扩展和验证层
-				createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO; 
-				createInfo.pApplicationInfo = &appInfo;
-
-				auto extensions = getRequiredExtensions();
-				createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-				createInfo.ppEnabledExtensionNames = extensions.data();
-
-				VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-				if (_enableValidationLayers) {
-					createInfo.ppEnabledLayerNames = _validationLayers.data();//create info include the validation layer names
-					createInfo.enabledLayerCount = static_cast<uint32_t>(_validationLayers.size());;
-					populateDebugMessengerCreateInfo(debugCreateInfo);
-					createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
-				}
-				else {
-					createInfo.enabledLayerCount = 0;
-
-					createInfo.pNext = nullptr;
-				}
-				
-				
-
-				//uint32_t glfwExtensionCount = 0;
-				//const char** glfwExtensions;
-
-				//glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-				//createInfo.enabledExtensionCount = glfwExtensionCount;
-				//createInfo.ppEnabledExtensionNames = glfwExtensions;
-				//createInfo.enabledLayerCount = 0;
-
-				if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS)
-					throw std::runtime_error("failed to create instance!");
+			void createGraphicsDevice() {
+				graphicsDevice = std::make_shared<Graphics::GraphicsDevice>(graphicsInstance);
+				_device = graphicsDevice->getLogicDevice();
+				_physicalDevice = graphicsDevice->getPhysicDevice();
+				_graphicsQueue = graphicsDevice->getGraphicsQueue();
+				_presentQueue = graphicsDevice->getPresentQueue();
 			}
 
 			bool checkExtensionSupport() 
@@ -603,7 +581,7 @@ namespace Dream {
 			void createImageViews() {
 				_swapChainImageViews.resize(_swapChainImages.size());
 				for (size_t i = 0; i < _swapChainImageViews.size(); i++) {
-					_swapChainImageViews[i] = createImageView(_swapChainImages[i], _swapChainImageFormat);
+					_swapChainImageViews[i] = createImageView(_swapChainImages[i], _swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 				}
 			}
 
@@ -730,6 +708,18 @@ namespace Dream {
 					throw std::runtime_error("failed to create pipeline layout!");
 				}
 
+				VkPipelineDepthStencilStateCreateInfo depthStencil{};
+				depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+				depthStencil.depthTestEnable = VK_TRUE;
+				depthStencil.depthWriteEnable = VK_TRUE;
+				depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+				depthStencil.depthBoundsTestEnable = VK_FALSE;
+				depthStencil.minDepthBounds = 0.0f; // Optional
+				depthStencil.maxDepthBounds = 1.0f; // Optional
+				depthStencil.stencilTestEnable = VK_FALSE;
+				depthStencil.front = {}; // Optional
+				depthStencil.back = {}; // Optional
+
 				VkGraphicsPipelineCreateInfo pipelineInfo{};
 				pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 				pipelineInfo.stageCount = 2;
@@ -739,7 +729,7 @@ namespace Dream {
 				pipelineInfo.pViewportState = &viewportState;
 				pipelineInfo.pRasterizationState = &rasterizationInfo;
 				pipelineInfo.pMultisampleState = &multisampleInfo;
-				pipelineInfo.pDepthStencilState = nullptr; // Optional
+				pipelineInfo.pDepthStencilState = &depthStencil; // Optional
 				pipelineInfo.pColorBlendState = &colorBlending;
 				pipelineInfo.pDynamicState = &dynamicStateInfo;
 				pipelineInfo.layout = _pipelineLayout;
@@ -778,46 +768,63 @@ namespace Dream {
 				colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 				colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
+				VkAttachmentDescription depthAttachment{};
+				depthAttachment.format = findDepthFormat();
+				depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+				depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+				depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+				depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+				depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
 				VkAttachmentReference colorAttachmentRef{};
 				colorAttachmentRef.attachment = 0;
 				colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+				VkAttachmentReference depthAttachmentRef{};
+				depthAttachmentRef.attachment = 1;
+				depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 				VkSubpassDescription subpass{};
 				subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 				subpass.colorAttachmentCount = 1;
 				subpass.pColorAttachments = &colorAttachmentRef;
+				subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
+				std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
 				VkRenderPassCreateInfo renderPassInfo{};
 				renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-				renderPassInfo.attachmentCount = 1;
-				renderPassInfo.pAttachments = &colorAttachment;
+				renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());;
+				renderPassInfo.pAttachments = attachments.data();
 				renderPassInfo.subpassCount = 1;
 				renderPassInfo.pSubpasses = &subpass;
 
 				VkSubpassDependency dependency{};
 				dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 				dependency.dstSubpass = 0;
-				dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+				dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 				dependency.srcAccessMask = 0;
-				dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-				dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+				dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 				renderPassInfo.dependencyCount = 1;
 				renderPassInfo.pDependencies = &dependency;
 				if(vkCreateRenderPass(_device, &renderPassInfo, nullptr, &_renderPass) != VK_SUCCESS)
 					throw std::runtime_error("failed to create render pass!");
 			}	
-			void createFrameBuffers() {
+			void createFramebuffers() {
 				_swapChainFramebuffers.resize(_swapChainImageViews.size());
 				for (int i = 0; i < _swapChainFramebuffers.size(); i++) {
-					VkImageView attachments[] = {
-						_swapChainImageViews[i]
+					std::array<VkImageView, 2> attachments = {
+						_swapChainImageViews[i],
+						_depthImageView
 					};
 					VkFramebufferCreateInfo framebufferInfo{};
 					framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 					framebufferInfo.renderPass = _renderPass;
-					framebufferInfo.attachmentCount = 1;
-					framebufferInfo.pAttachments = attachments;
+					framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());;
+					framebufferInfo.pAttachments = attachments.data();
 					framebufferInfo.width = _swapChainExtent.width;
 					framebufferInfo.height = _swapChainExtent.height;
 					framebufferInfo.layers = 1;
@@ -863,9 +870,12 @@ namespace Dream {
 				renderPassInfo.framebuffer = _swapChainFramebuffers[imageIndex];
 				renderPassInfo.renderArea.offset = { 0, 0 };
 				renderPassInfo.renderArea.extent = _swapChainExtent;
-				VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
-				renderPassInfo.clearValueCount = 1;
-				renderPassInfo.pClearValues = &clearColor;
+				std::array<VkClearValue, 2> clearValues{};
+				clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+				clearValues[1].depthStencil = { 1.0f, 0 };
+
+				renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+				renderPassInfo.pClearValues = clearValues.data();
 				vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
 				VkBuffer vertexBuffers[] = { _vertexBuffer };
@@ -897,55 +907,69 @@ namespace Dream {
 			}
 
 			void drawFrame() {
-
 				vkWaitForFences(_device, 1, &_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-				
-				uint32_t imageIndex;
-				
-				VkResult result = vkAcquireNextImageKHR(_device, _swapChain, UINT64_MAX, _imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
-				if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
-					recreateSwapChain();
-					framebufferResized = false;
-				}
-				else if (result != VK_SUCCESS) {
-					throw std::runtime_error("failed to present swap chain image!");
-				}
-				updateUniformBuffer(currentFrame);
-				vkResetFences(_device, 1, &_inFlightFences[currentFrame]);
-				
 
-				vkResetCommandBuffer(_commandBuffers[currentFrame], 0);
+				uint32_t imageIndex;
+				VkResult result = vkAcquireNextImageKHR(_device, _swapChain, UINT64_MAX, _imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+				if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+					recreateSwapChain();
+					return;
+				}
+				else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+					throw std::runtime_error("failed to acquire swap chain image!");
+				}
+
+				updateUniformBuffer(currentFrame);
+
+				vkResetFences(_device, 1, &_inFlightFences[currentFrame]);
+
+				vkResetCommandBuffer(_commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
 				recordCommandBuffer(_commandBuffers[currentFrame], imageIndex);
 
 				VkSubmitInfo submitInfo{};
 				submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
 				VkSemaphore waitSemaphores[] = { _imageAvailableSemaphores[currentFrame] };
 				VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 				submitInfo.waitSemaphoreCount = 1;
 				submitInfo.pWaitSemaphores = waitSemaphores;
 				submitInfo.pWaitDstStageMask = waitStages;
+
 				submitInfo.commandBufferCount = 1;
 				submitInfo.pCommandBuffers = &_commandBuffers[currentFrame];
-				VkSemaphore signalSemphores[] = { _renderFinishedSemaphores[currentFrame] };
-				submitInfo.signalSemaphoreCount = 1;
-				submitInfo.pSignalSemaphores = signalSemphores;
 
-				if(vkQueueSubmit(_graphicsQueue, 1, &submitInfo, _inFlightFences[currentFrame]) != VK_SUCCESS)
+				VkSemaphore signalSemaphores[] = { _renderFinishedSemaphores[currentFrame] };
+				submitInfo.signalSemaphoreCount = 1;
+				submitInfo.pSignalSemaphores = signalSemaphores;
+
+				if (vkQueueSubmit(_graphicsQueue, 1, &submitInfo, _inFlightFences[currentFrame]) != VK_SUCCESS) {
 					throw std::runtime_error("failed to submit draw command buffer!");
+				}
+
 				VkPresentInfoKHR presentInfo{};
 				presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
 				presentInfo.waitSemaphoreCount = 1;
-				presentInfo.pWaitSemaphores = signalSemphores;
+				presentInfo.pWaitSemaphores = signalSemaphores;
+
 				VkSwapchainKHR swapChains[] = { _swapChain };
 				presentInfo.swapchainCount = 1;
 				presentInfo.pSwapchains = swapChains;
+
 				presentInfo.pImageIndices = &imageIndex;
-				presentInfo.pResults = nullptr;
-				vkQueuePresentKHR(_presentQueue, &presentInfo);
+
+				result = vkQueuePresentKHR(_presentQueue, &presentInfo);
+
+				if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+					framebufferResized = false;
+					recreateSwapChain();
+				}
+				else if (result != VK_SUCCESS) {
+					throw std::runtime_error("failed to present swap chain image!");
+				}
 
 				currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-
 			}
 			void createSyncObjects() {
 				_imageAvailableSemaphores.resize(2);
@@ -966,6 +990,9 @@ namespace Dream {
 				}
 			}
 			void cleanUpSwapChain() {
+				vkDestroyImageView(_device, _depthImageView, nullptr);
+				vkDestroyImage(_device, _depthImage, nullptr);
+				vkFreeMemory(_device, _depthImageMemory, nullptr);
 				for (size_t i = 0; i < _swapChainFramebuffers.size(); i++) {
 					vkDestroyFramebuffer(_device, _swapChainFramebuffers[i], nullptr);
 				}
@@ -978,18 +1005,20 @@ namespace Dream {
 
 			}
 			void recreateSwapChain() {
-				vkDeviceWaitIdle(_device);
 				int width = 0, height = 0;
-				glfwGetFramebufferSize(_window, &width, &height);
 				while (width == 0 || height == 0) {
 					glfwGetFramebufferSize(_window, &width, &height);
 					glfwWaitEvents();
 				}
+
+				vkDeviceWaitIdle(_device);
+
 				cleanUpSwapChain();
 
 				createSwapChain();
 				createImageViews();
-				createFrameBuffers();
+				createDepthResources();
+				createFramebuffers();
 			}
 			uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 
@@ -1333,8 +1362,26 @@ namespace Dream {
 					sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 					destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 				}
+				else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+					barrier.srcAccessMask = 0;
+					barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+					sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+					destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+				}
 				else {
 					throw std::invalid_argument("unsupported layout transition!");
+				}
+
+				if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+					barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+					if (hasStencilComponent(format)) {
+						barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+					}
+				}
+				else {
+					barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 				}
 				vkCmdPipelineBarrier(
 					commandBuffer,
@@ -1377,19 +1424,19 @@ namespace Dream {
 			}
 
 			void createTextureImageView() {
-			    _textureImageView = createImageView(_textureImage, VK_FORMAT_R8G8B8A8_SRGB);
+			    _textureImageView = createImageView(_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 
 
 
 			}
 
-			VkImageView createImageView(VkImage image, VkFormat format) {
+			VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
 				VkImageViewCreateInfo viewInfo{};
 				viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 				viewInfo.image = image;
 				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 				viewInfo.format = format;
-				viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				viewInfo.subresourceRange.aspectMask = aspectFlags;
 				viewInfo.subresourceRange.baseMipLevel = 0;
 				viewInfo.subresourceRange.levelCount = 1;
 				viewInfo.subresourceRange.baseArrayLayer = 0;
@@ -1426,6 +1473,40 @@ namespace Dream {
 				if (vkCreateSampler(_device, &samplerInfo, nullptr, &_textureSampler) != VK_SUCCESS) {
 					throw std::runtime_error("failed to create texture sampler!");
 				}
+			}
+
+			void createDepthResources() {
+				VkFormat depthFormat = findDepthFormat();
+				createImage(_swapChainExtent.width, _swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _depthImage, _depthImageMemory);
+				_depthImageView = createImageView(_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+			}
+
+			VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+				for (VkFormat format : candidates) {
+					VkFormatProperties props;
+					vkGetPhysicalDeviceFormatProperties(_physicalDevice, format, &props);
+
+					if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+						return format;
+					}
+					else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+						return format;
+					}
+				}
+
+				throw std::runtime_error("failed to find supported format!");
+			}
+
+			VkFormat findDepthFormat() {
+				return findSupportedFormat(
+					{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+					VK_IMAGE_TILING_OPTIMAL,
+					VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+				);
+			}
+
+			bool hasStencilComponent(VkFormat format) {
+				return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 			}
 		private:
 			uint32_t currentFrame = 0;
@@ -1477,6 +1558,10 @@ namespace Dream {
 			VkImage _textureImage;
 			VkImageView _textureImageView;
 			VkDeviceMemory _textureImageMemory;
+
+			VkImage _depthImage;
+			VkImageView _depthImageView;
+			VkDeviceMemory _depthImageMemory;
 			VkSampler _textureSampler;
 			bool framebufferResized = false;
 #ifdef NDEBUG
@@ -1486,6 +1571,8 @@ namespace Dream {
 #endif // NDEBUG
 			VkDebugUtilsMessengerEXT _debugMessenger;
 
+			std::shared_ptr<Graphics::GraphicsInstance> graphicsInstance;
+			std::shared_ptr<Graphics::GraphicsDevice> graphicsDevice;
 	};
 }
 
