@@ -1,1 +1,7 @@
-﻿  DreamEngine.vcxproj -> E:\AboutLearningSecond\Dream\DreamEngine\x64\Debug\DreamEngine.exe
+﻿  main.cpp
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.hpp(54,23): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.hpp(61,15): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(235,23): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(242,15): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsInstance.hpp(162): warning C4715: “Graphics::GraphicsInstance::createSurface”: 不是所有的控件路径都返回值
+  DreamEngine.vcxproj -> E:\AboutLearningSecond\Dream\DreamEngine\x64\Debug\DreamEngine.exe

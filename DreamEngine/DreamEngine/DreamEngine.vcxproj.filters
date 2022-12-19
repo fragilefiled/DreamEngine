@@ -53,5 +53,17 @@
     <ClInclude Include="GraphicsSwapChain.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="GraphicsCommandBuffer.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsTextureUtil.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsTexture.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsBuffer.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

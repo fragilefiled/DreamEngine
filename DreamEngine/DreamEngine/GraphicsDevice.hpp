@@ -13,6 +13,14 @@ namespace Graphics
 			pickPhysicDevice();
 			createLogicDevice();
 		}
+
+		//static GraphicsDevice* getInstance() {
+		//	if (m_instance == nullptr) {
+		//		m_instance = std::make_unique<GraphicsDevice>();
+		//	}
+		//	return m_instance.get();
+		//}
+
 		void pickPhysicDevice() 
 		{
 			auto graphicsHelper = GraphicsUtil::getInstance();
@@ -106,6 +114,7 @@ namespace Graphics
 		}
 		
 	private:
+		static std::unique_ptr<GraphicsDevice> m_instance;
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 		std::shared_ptr<GraphicsInstance> m_graphicsInstance;
 		VkQueue m_graphicsQueue;
@@ -113,8 +122,11 @@ namespace Graphics
 		VkDevice m_device;
 		VkSurfaceKHR m_vkSurface;
 		VkInstance m_vkInstance;
+
+		
 	};
 
+	std::unique_ptr<GraphicsDevice> GraphicsDevice::m_instance = nullptr;//类内只是定义没有声明
 
 
 }

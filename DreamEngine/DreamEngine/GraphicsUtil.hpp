@@ -11,7 +11,6 @@
 #include <algorithm> // Necessary for std::clamp
 #include <vulkan/vulkan.h>
 #include <GLFW\glfw3.h>
-
 namespace Graphics 
 {
 	class GraphicsUtil 
@@ -182,6 +181,21 @@ namespace Graphics
 				}
 			}
 
+			uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice physicalDevice) {
+
+				VkPhysicalDeviceMemoryProperties memProperties;
+				vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+				for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+					if (typeFilter & (1 << i) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+						return i;
+					}
+				}
+
+				throw std::runtime_error("failed to find suitable memory type!");
+			}
+
+
+
 			static void release() {
 				m_instance.reset();
 			}
@@ -240,6 +254,8 @@ namespace Graphics
 				}
 				return details;
 			}
+
+
 			
 	};
 	std::unique_ptr<GraphicsUtil> GraphicsUtil::m_instance = nullptr;//类内只是定义没有声明

@@ -3,6 +3,8 @@
 #include"GraphicsUtil.hpp"
 #include "GraphicsInstance.hpp"
 #include "GraphicsDevice.hpp"
+#include "GraphicsTextureUtil.hpp"
+#include"GraphicsTexture.hpp"
 namespace Graphics
 {
 	class GraphicsSwapChain 
@@ -62,8 +64,18 @@ namespace Graphics
 					throw std::runtime_error("swapChain Create Failed !");
 				vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, nullptr);
 				m_swapChainImages.resize(imageCount);
-				vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, m_swapChainImages.data());
+				vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, m_swapChainImages.data());				
 
+				createSwapChainImageViews();
+
+			}
+			void createSwapChainImageViews() 
+			{
+				m_swapChainImageViews.resize(m_swapChainImages.size());
+				for (size_t i = 0; i < m_swapChainImageViews.size(); i++) 
+				{
+					m_swapChainImageViews[i] = GraphicsTextureUtil::createImageView(m_device ,m_swapChainImages[i], m_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+				}
 			}
 
 			GraphicsUtil::SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice& device) {

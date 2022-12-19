@@ -124,7 +124,7 @@ namespace Dream {
 				createGraphicsDevice();
 				//createSwapChain();
 				createGraphicsSwapChain();
-				createImageViews();
+				//createImageViews();
 				createRenderPass();
 				createDescriptorSetLayout();
 				createGraphicsPipline();
@@ -1012,7 +1012,6 @@ namespace Dream {
 				}
 
 				vkDestroySwapchainKHR(_device, _swapChain, nullptr);
-
 			}
 			void recreateSwapChain() {
 				int width = 0, height = 0;

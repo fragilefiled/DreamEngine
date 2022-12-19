@@ -143,9 +143,13 @@
     <ClInclude Include="Device.hpp" />
     <ClInclude Include="DreamEngine.hpp" />
     <ClInclude Include="FileOperation.h" />
+    <ClInclude Include="GraphicsBuffer.hpp" />
+    <ClInclude Include="GraphicsCommandBuffer.hpp" />
     <ClInclude Include="GraphicsDevice.hpp" />
     <ClInclude Include="GraphicsInstance.hpp" />
     <ClInclude Include="GraphicsSwapChain.hpp" />
+    <ClInclude Include="GraphicsTexture.hpp" />
+    <ClInclude Include="GraphicsTextureUtil.hpp" />
     <ClInclude Include="GraphicsUtil.hpp" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Texture.h" />
