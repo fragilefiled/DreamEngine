@@ -1,20 +1,15 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include"GraphicsUtil.hpp"
-#include "GraphicsInstance.hpp"
-#include "GraphicsDevice.hpp"
 #include "GraphicsTextureUtil.hpp"
-#include"GraphicsTexture.hpp"
 namespace Graphics
 {
 	class GraphicsSwapChain 
 	{
 		public:
-			GraphicsSwapChain(std::shared_ptr<GraphicsInstance> graphicsInstance, std::shared_ptr<GraphicsDevice> graphicsDevice) {
-				this->m_graphicsDevice = graphicsDevice;
-				this->m_graphicsInstance = graphicsInstance;
-				m_physicalDevice = m_graphicsDevice->getPhysicDevice();
-				m_device = m_graphicsDevice->getLogicDevice();
+			GraphicsSwapChain() {
+				this->m_graphicsInstance = GraphicsDevice::getInstance()->getGraphicsInstance();
+				m_physicalDevice = GraphicsDevice::getInstance()->getPhysicDevice();
+				m_device = GraphicsDevice::getInstance()->getLogicDevice();
 				m_vkSurface = m_graphicsInstance->getSurface();
 				m_window = m_graphicsInstance->getGLTFWindow();
 				createSwapChain();
@@ -118,7 +113,6 @@ namespace Graphics
 
 			~GraphicsSwapChain() {
 
-				m_graphicsDevice.reset();
 				m_graphicsInstance.reset();
 				//暂时先不释放
 			}
@@ -128,7 +122,6 @@ namespace Graphics
 		GLFWwindow* m_window;
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 		std::shared_ptr<GraphicsInstance> m_graphicsInstance;
-		std::shared_ptr<GraphicsDevice> m_graphicsDevice;
 
 		VkSwapchainKHR m_swapChain;
 		std::vector<VkImage> m_swapChainImages;

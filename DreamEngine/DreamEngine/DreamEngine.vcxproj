@@ -135,6 +135,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GraphicsDevice.cpp" />
+    <ClCompile Include="GraphicsPipelineInternal.hpp" />
+    <ClCompile Include="GraphicsRenderPass.hpp" />
+    <ClCompile Include="GraphicsUtil.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -145,12 +149,13 @@
     <ClInclude Include="FileOperation.h" />
     <ClInclude Include="GraphicsBuffer.hpp" />
     <ClInclude Include="GraphicsCommandBuffer.hpp" />
-    <ClInclude Include="GraphicsDevice.hpp" />
+    <ClInclude Include="GraphicsDescriptorSetLayout.hpp" />
+    <ClInclude Include="GraphicsDevice.h" />
     <ClInclude Include="GraphicsInstance.hpp" />
     <ClInclude Include="GraphicsSwapChain.hpp" />
     <ClInclude Include="GraphicsTexture.hpp" />
     <ClInclude Include="GraphicsTextureUtil.hpp" />
-    <ClInclude Include="GraphicsUtil.hpp" />
+    <ClInclude Include="GraphicsUtil.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Texture.h" />
   </ItemGroup>

@@ -1,9 +1,9 @@
 #pragma once
 #pragma once
 #include <vulkan/vulkan.h>
-#include"GraphicsUtil.hpp"
+#include"GraphicsTextureUtil.hpp"
 #include "GraphicsInstance.hpp"
-#include "GraphicsDevice.hpp"
+#include "GraphicsDevice.h"
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #include"stb_image.h" //Can not be used in .h

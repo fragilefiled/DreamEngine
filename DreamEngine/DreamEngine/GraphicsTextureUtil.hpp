@@ -1,7 +1,5 @@
 #pragma once
-#include <vulkan/vulkan.h>
-#include "GraphicsInstance.hpp"
-#include "GraphicsDevice.hpp"
+#include "GraphicsDevice.h"
 namespace Graphics {
 	class GraphicsTextureUtil
 	{

@@ -24,6 +24,18 @@
     <ClCompile Include="Texture.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="GraphicsRenderPass.hpp">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsUtil.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsDevice.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsPipelineInternal.hpp">
+      <Filter>头文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DreamEngine.hpp">
@@ -41,13 +53,13 @@
     <ClInclude Include="Device.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicsUtil.hpp">
+    <ClInclude Include="GraphicsUtil.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsInstance.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicsDevice.hpp">
+    <ClInclude Include="GraphicsDevice.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsSwapChain.hpp">
@@ -63,6 +75,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsBuffer.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDescriptorSetLayout.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

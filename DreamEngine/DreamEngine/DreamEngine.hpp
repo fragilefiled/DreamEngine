@@ -29,9 +29,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <chrono>
-#include "GraphicsInstance.hpp"
-#include "GraphicsDevice.hpp"
 #include "GraphicsSwapChain.hpp"
+#include "GraphicsRenderPass.hpp"
+#include "GraphicsDescriptorSetLayout.hpp"
 namespace Dream {
 	class DreamEngine
 	{
@@ -123,10 +123,12 @@ namespace Dream {
 				//createLogicDevice();
 				createGraphicsDevice();
 				//createSwapChain();
-				createGraphicsSwapChain();
 				//createImageViews();
-				createRenderPass();
-				createDescriptorSetLayout();
+				createGraphicsSwapChain();
+				//createRenderPass();
+				createGraphcisRenderPass();
+				//createDescriptorSetLayout();
+				createGraphicsDescriptorSetLayout();
 				createGraphicsPipline();
 				createDepthResources();
 				createFramebuffers();
@@ -170,7 +172,8 @@ namespace Dream {
 					vkFreeMemory(_device, _uniformBuffersMemory[i], nullptr);
 				}
 				vkDestroyDescriptorPool(_device, _descriptorPool, nullptr);
-				vkDestroyDescriptorSetLayout(_device, _descriptorSetLayout, nullptr);
+				//vkDestroyDescriptorSetLayout(_device, _descriptorSetLayout, nullptr);
+				graphicsDescriptorSetLayout.reset();
 				vkDestroyBuffer(_device, _vertexBuffer, nullptr);
 				vkFreeMemory(_device, _vertexBufferMemory, nullptr);
 				vkDestroyBuffer(_device, _indexBuffer, nullptr);
@@ -184,15 +187,16 @@ namespace Dream {
 				vkDestroySwapchainKHR(_device, _swapChain, nullptr);*/
 				vkDestroyPipeline(_device, _graphicsPipeline, nullptr);
 				vkDestroyPipelineLayout(_device, _pipelineLayout, nullptr);
-				vkDestroyRenderPass(_device, _renderPass, nullptr);
-				
+				//vkDestroyRenderPass(_device, _renderPass, nullptr);
+				graphicsRenderPass.reset();
+				graphicsSwapChain.reset();
 				//  vkDestroyDevice(_device, nullptr);
 				
 				//vkDestroySurfaceKHR(_instance, _surface, nullptr);
 				//if (_enableValidationLayers)
 				//	DestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
 				//vkDestroyInstance(_instance, nullptr);
-				graphicsDevice.reset();
+				Graphics::GraphicsDevice::release();
 				graphicsInstance.reset();
 				glfwDestroyWindow(_window);
 				glfwTerminate();
@@ -205,20 +209,31 @@ namespace Dream {
 			}
 
 			void createGraphicsDevice() {
-				graphicsDevice = std::make_shared<Graphics::GraphicsDevice>(graphicsInstance);
-				_device = graphicsDevice->getLogicDevice();
-				_physicalDevice = graphicsDevice->getPhysicDevice();
-				_graphicsQueue = graphicsDevice->getGraphicsQueue();
-				_presentQueue = graphicsDevice->getPresentQueue();
+				Graphics::GraphicsDevice::Init(graphicsInstance);
+				_device = Graphics::GraphicsDevice::getInstance()->getLogicDevice();
+				_physicalDevice = Graphics::GraphicsDevice::getInstance()->getPhysicDevice();
+				_graphicsQueue = Graphics::GraphicsDevice::getInstance()->getGraphicsQueue();
+				_presentQueue = Graphics::GraphicsDevice::getInstance()->getPresentQueue();
 			}
 
 			void createGraphicsSwapChain() {
-				graphicsSwapChain = std::make_shared<Graphics::GraphicsSwapChain>(graphicsInstance, graphicsDevice);
+				graphicsSwapChain = std::make_shared<Graphics::GraphicsSwapChain>();
 				_swapChain = graphicsSwapChain->getswapChain();
 				_swapChainImages = graphicsSwapChain->getswapChainImages();
 				_swapChainImageViews = graphicsSwapChain->getswapChainImageViews();
 				_swapChainImageFormat = graphicsSwapChain->getswapChainImageFormat();
 				_swapChainExtent = graphicsSwapChain->getswapChainExtent();
+			}
+
+			void createGraphcisRenderPass() {
+				graphicsRenderPass = std::make_shared<Graphics::GraphicsRenderPass>(graphicsSwapChain);
+				_renderPass = graphicsRenderPass->getRenderPass();
+
+			}
+
+			void createGraphicsDescriptorSetLayout() {
+				graphicsDescriptorSetLayout = std::make_shared<Graphics::GraphicsDescriptorSetLayout>();
+				_descriptorSetLayout = graphicsDescriptorSetLayout->GetDescriptSetLayout();
 			}
 			bool checkExtensionSupport() 
 			{
@@ -1514,6 +1529,7 @@ namespace Dream {
 				);
 			}
 
+
 			bool hasStencilComponent(VkFormat format) {
 				return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 			}
@@ -1581,8 +1597,9 @@ namespace Dream {
 			VkDebugUtilsMessengerEXT _debugMessenger;
 
 			std::shared_ptr<Graphics::GraphicsInstance> graphicsInstance;
-			std::shared_ptr<Graphics::GraphicsDevice> graphicsDevice;
 			std::shared_ptr<Graphics::GraphicsSwapChain> graphicsSwapChain;
+			std::shared_ptr<Graphics::GraphicsRenderPass> graphicsRenderPass;
+			std::shared_ptr<Graphics::GraphicsDescriptorSetLayout> graphicsDescriptorSetLayout;
 	};
 }
 
