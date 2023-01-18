@@ -32,6 +32,7 @@
 #include "GraphicsSwapChain.hpp"
 #include "GraphicsRenderPass.hpp"
 #include "GraphicsDescriptorSetLayout.hpp"
+#include "GraphicsPipelineInternal.hpp"
 namespace Dream {
 	class DreamEngine
 	{
@@ -129,7 +130,8 @@ namespace Dream {
 				createGraphcisRenderPass();
 				//createDescriptorSetLayout();
 				createGraphicsDescriptorSetLayout();
-				createGraphicsPipline();
+				//createGraphicsPipline();
+				createGraphicsPipelineInternal();
 				createDepthResources();
 				createFramebuffers();
 				createCommandPool();
@@ -173,7 +175,7 @@ namespace Dream {
 				}
 				vkDestroyDescriptorPool(_device, _descriptorPool, nullptr);
 				//vkDestroyDescriptorSetLayout(_device, _descriptorSetLayout, nullptr);
-				graphicsDescriptorSetLayout.reset();
+				m_graphicsDescriptorSetLayout.reset();
 				vkDestroyBuffer(_device, _vertexBuffer, nullptr);
 				vkFreeMemory(_device, _vertexBufferMemory, nullptr);
 				vkDestroyBuffer(_device, _indexBuffer, nullptr);
@@ -185,11 +187,13 @@ namespace Dream {
 					vkDestroyImageView(_device, imageView, nullptr);
 				}
 				vkDestroySwapchainKHR(_device, _swapChain, nullptr);*/
-				vkDestroyPipeline(_device, _graphicsPipeline, nullptr);
-				vkDestroyPipelineLayout(_device, _pipelineLayout, nullptr);
+
+				//vkDestroyPipeline(_device, _graphicsPipeline, nullptr);
+				//vkDestroyPipelineLayout(_device, _pipelineLayout, nullptr);
+				m_graphicsPipelineInternal.reset();
 				//vkDestroyRenderPass(_device, _renderPass, nullptr);
-				graphicsRenderPass.reset();
-				graphicsSwapChain.reset();
+				m_graphicsRenderPass.reset();
+				m_graphicsSwapChain.reset();
 				//  vkDestroyDevice(_device, nullptr);
 				
 				//vkDestroySurfaceKHR(_instance, _surface, nullptr);
@@ -197,19 +201,19 @@ namespace Dream {
 				//	DestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
 				//vkDestroyInstance(_instance, nullptr);
 				Graphics::GraphicsDevice::release();
-				graphicsInstance.reset();
+				m_graphicsInstance.reset();
 				glfwDestroyWindow(_window);
 				glfwTerminate();
 			}
 
 			void createInstanceAndSurface() {
-				graphicsInstance =std::make_shared<Graphics::GraphicsInstance>(_enableValidationLayers, _window);
-				_instance = (graphicsInstance->getInstance());
-				_surface = graphicsInstance->getSurface();
+				m_graphicsInstance =std::make_shared<Graphics::GraphicsInstance>(_enableValidationLayers, _window);
+				_instance = (m_graphicsInstance->getInstance());
+				_surface = m_graphicsInstance->getSurface();
 			}
 
 			void createGraphicsDevice() {
-				Graphics::GraphicsDevice::Init(graphicsInstance);
+				Graphics::GraphicsDevice::Init(m_graphicsInstance);
 				_device = Graphics::GraphicsDevice::getInstance()->getLogicDevice();
 				_physicalDevice = Graphics::GraphicsDevice::getInstance()->getPhysicDevice();
 				_graphicsQueue = Graphics::GraphicsDevice::getInstance()->getGraphicsQueue();
@@ -217,23 +221,29 @@ namespace Dream {
 			}
 
 			void createGraphicsSwapChain() {
-				graphicsSwapChain = std::make_shared<Graphics::GraphicsSwapChain>();
-				_swapChain = graphicsSwapChain->getswapChain();
-				_swapChainImages = graphicsSwapChain->getswapChainImages();
-				_swapChainImageViews = graphicsSwapChain->getswapChainImageViews();
-				_swapChainImageFormat = graphicsSwapChain->getswapChainImageFormat();
-				_swapChainExtent = graphicsSwapChain->getswapChainExtent();
+				m_graphicsSwapChain = std::make_shared<Graphics::GraphicsSwapChain>();
+				_swapChain = m_graphicsSwapChain->getswapChain();
+				_swapChainImages = m_graphicsSwapChain->getswapChainImages();
+				_swapChainImageViews = m_graphicsSwapChain->getswapChainImageViews();
+				_swapChainImageFormat = m_graphicsSwapChain->getswapChainImageFormat();
+				_swapChainExtent = m_graphicsSwapChain->getswapChainExtent();
 			}
 
 			void createGraphcisRenderPass() {
-				graphicsRenderPass = std::make_shared<Graphics::GraphicsRenderPass>(graphicsSwapChain);
-				_renderPass = graphicsRenderPass->getRenderPass();
+				m_graphicsRenderPass = std::make_shared<Graphics::GraphicsRenderPass>(m_graphicsSwapChain);
+				_renderPass = m_graphicsRenderPass->getRenderPass();
 
 			}
 
 			void createGraphicsDescriptorSetLayout() {
-				graphicsDescriptorSetLayout = std::make_shared<Graphics::GraphicsDescriptorSetLayout>();
-				_descriptorSetLayout = graphicsDescriptorSetLayout->GetDescriptSetLayout();
+				m_graphicsDescriptorSetLayout = std::make_shared<Graphics::GraphicsDescriptorSetLayout>();
+				_descriptorSetLayout = m_graphicsDescriptorSetLayout->GetDescriptSetLayout();
+			}
+
+			void createGraphicsPipelineInternal() {
+				m_graphicsPipelineInternal = std::make_shared<Graphics::GraphicsPipelineInternal>(m_graphicsRenderPass, m_graphicsDescriptorSetLayout);
+				_pipelineLayout = m_graphicsPipelineInternal->getPipelineLayout();
+				_graphicsPipeline = m_graphicsPipelineInternal->getPipeline();
 			}
 			bool checkExtensionSupport() 
 			{
@@ -1596,10 +1606,11 @@ namespace Dream {
 #endif // NDEBUG
 			VkDebugUtilsMessengerEXT _debugMessenger;
 
-			std::shared_ptr<Graphics::GraphicsInstance> graphicsInstance;
-			std::shared_ptr<Graphics::GraphicsSwapChain> graphicsSwapChain;
-			std::shared_ptr<Graphics::GraphicsRenderPass> graphicsRenderPass;
-			std::shared_ptr<Graphics::GraphicsDescriptorSetLayout> graphicsDescriptorSetLayout;
+			std::shared_ptr<Graphics::GraphicsInstance> m_graphicsInstance;
+			std::shared_ptr<Graphics::GraphicsSwapChain> m_graphicsSwapChain;
+			std::shared_ptr<Graphics::GraphicsRenderPass> m_graphicsRenderPass;
+			std::shared_ptr<Graphics::GraphicsDescriptorSetLayout> m_graphicsDescriptorSetLayout;
+			std::shared_ptr<Graphics::GraphicsPipelineInternal> m_graphicsPipelineInternal;
 	};
 }
 

@@ -8,13 +8,21 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #endif
+#include "GraphicsDescriptorSetLayout.hpp"
 namespace Graphics
 {
 	class GraphicsPipelineInternal {
 
 	public:
-		GraphicsPipelineInternal() {
+		GraphicsPipelineInternal(std::shared_ptr<GraphicsRenderPass> graphicsRenderPass, std::shared_ptr<GraphicsDescriptorSetLayout> graphicsDescriptorSetLayout) {
 			m_device = GraphicsDevice::getInstance()->getLogicDevice();
+			m_graphicsRenderPass = graphicsRenderPass;
+			m_graphicsDescriptorSetLayout = graphicsDescriptorSetLayout;
+			m_graphicsSwapChain = graphicsRenderPass->getGraphicsSwapChain();
+			m_swapChainExtent = m_graphicsSwapChain->getswapChainExtent();
+			m_descriptorSetLayout = graphicsDescriptorSetLayout->GetDescriptSetLayout();
+			m_renderPass = graphicsRenderPass->getRenderPass();
+			createGraphicsPipline();
 		};
 		struct Vertex {
 			glm::vec3 pos;
@@ -165,7 +173,7 @@ namespace Graphics
 			pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 			pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-			if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_graphicsPipelineLayout) != VK_SUCCESS) {
+			if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create pipeline layout!");
 			}
 
@@ -193,25 +201,50 @@ namespace Graphics
 			pipelineInfo.pDepthStencilState = &depthStencil; // Optional
 			pipelineInfo.pColorBlendState = &colorBlending;
 			pipelineInfo.pDynamicState = &dynamicStateInfo;
-			pipelineInfo.layout = m_graphicsPipelineLayout;
+			pipelineInfo.layout = m_pipelineLayout;
 			pipelineInfo.renderPass = m_renderPass;
 			pipelineInfo.subpass = 0;
 
 			pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 			pipelineInfo.basePipelineIndex = -1; // Optional
-			if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS) {
+			if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_pipeline) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create graphics pipeline!");
 			}
 			vkDestroyShaderModule(m_device, fragShaderModule, nullptr);
 			vkDestroyShaderModule(m_device, vertShaderModule, nullptr);
 		}
+		~GraphicsPipelineInternal() {
+			m_graphicsSwapChain.reset();
+			m_graphicsRenderPass.reset();
+			m_graphicsDescriptorSetLayout.reset();
+			vkDestroyPipeline(m_device, m_pipeline, nullptr);
+			vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
+
+		}
+
+		VkPipeline getPipeline() {
+			return m_pipeline;
+		}
+		VkPipelineLayout getPipelineLayout() {
+			return m_pipelineLayout;
+		}
+
+		std::shared_ptr<GraphicsRenderPass> getGraphicsRenderPass() {
+			return m_graphicsRenderPass;
+		}
+		std::shared_ptr<GraphicsDescriptorSetLayout> getGraphicsDescriptorSetLayout() {
+			return m_graphicsDescriptorSetLayout;
+		}
 	private:
 		VkDevice m_device;
+		std::shared_ptr<GraphicsSwapChain> m_graphicsSwapChain;
+		std::shared_ptr<GraphicsRenderPass> m_graphicsRenderPass;
+		std::shared_ptr <GraphicsDescriptorSetLayout> m_graphicsDescriptorSetLayout;
 		VkDescriptorSetLayout m_descriptorSetLayout;
 		VkExtent2D m_swapChainExtent;
 		VkRenderPass m_renderPass;
-		VkPipeline m_graphicsPipeline;
-		VkPipelineLayout m_graphicsPipelineLayout;
+		VkPipeline m_pipeline;
+		VkPipelineLayout m_pipelineLayout;
 
 	};
 

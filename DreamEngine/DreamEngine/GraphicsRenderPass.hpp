@@ -8,6 +8,7 @@ namespace Graphics
 	public:
 		GraphicsRenderPass(std::shared_ptr<GraphicsSwapChain> graphicsSwapChain) {
 			m_swapChainImageFormat = graphicsSwapChain->getswapChainImageFormat();
+			m_graphicsSwapChain = graphicsSwapChain;
 			m_device = GraphicsDevice::getInstance()->getLogicDevice();
 			m_physicalDevice = GraphicsDevice::getInstance()->getPhysicDevice();
 			createRenderPass();
