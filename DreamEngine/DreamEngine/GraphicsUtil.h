@@ -254,6 +254,14 @@ namespace Graphics
 				m_instance.reset();
 			}
 
+			void setMainCommandPool(VkCommandPool commandPool) {
+				this->mainCommandPool = commandPool;
+			}
+			
+			VkCommandPool getMainCommandPool() {
+				return mainCommandPool;
+			}
+
 			const std::vector<const char*> _validationLayers = {
 				"VK_LAYER_KHRONOS_validation"
 			};
@@ -265,8 +273,7 @@ namespace Graphics
 			}
 	private:
 			static std::unique_ptr<GraphicsUtil> m_instance;
-
-
+			VkCommandPool mainCommandPool;
 
 			bool checkDeviceExtensionSupport(const VkPhysicalDevice& device)
 			{

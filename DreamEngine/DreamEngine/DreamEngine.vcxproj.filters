@@ -21,9 +21,6 @@
     <ClCompile Include="Object.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="GraphicsRenderPass.hpp">
       <Filter>头文件</Filter>
     </ClCompile>
@@ -47,7 +44,7 @@
     <ClInclude Include="Object.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
+    <ClInclude Include="TextureAsset.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Device.hpp">
@@ -99,6 +96,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsSyncObject.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelAsset.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexLayout.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -87,8 +87,11 @@ namespace Graphics
 		}
 		void createTextureImage(std::string path) {
 			int texWidth, texHeight, texChannels;
+
 			stbi_uc* pixels = stbi_load(path.data(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 			VkDeviceSize imageSize = texWidth * texHeight * 4;
+			width = texWidth;
+			height = texHeight;
 
 			if (pixels == nullptr) {
 				throw std::runtime_error("failed to load texture image!");
@@ -291,6 +294,14 @@ namespace Graphics
 			return m_textureSampler;
 		}
 
+		uint16_t getWidth() {
+			return width;
+		}
+
+		uint16_t getHeight() {
+			return height;
+		}
+
 		~GraphicsTexture() {
 			if(m_type == Default)
 				vkDestroySampler(m_device, m_textureSampler, nullptr);
@@ -299,6 +310,7 @@ namespace Graphics
 			vkFreeMemory(m_device, m_imageMemory, nullptr);
 		}
 	private:
+		uint16_t width, height;
 		VkDevice m_device;
 		VkPhysicalDevice m_physicalDevice;
 		VkImageView m_imageView;

@@ -27,6 +27,7 @@ namespace Graphics {
 			poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 			if (vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS)
 				throw std::runtime_error("failed to create command pool!");
+			GraphicsUtil::getInstance()->setMainCommandPool(m_commandPool);
 		}
 
 		VkCommandPool getCommandPool() {

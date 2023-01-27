@@ -41,6 +41,25 @@
 #include "GraphicsDescriptorPool.hpp"
 #include "GraphicsDescriptorSet.hpp"
 #include "GraphicsSyncObject.hpp"
+#include "ModelAsset.hpp"
+struct VertexTest
+{
+	// position
+	glm::vec3 Position;
+	// normal
+	glm::vec3 Normal;
+	// texCoords
+	glm::vec2 TexCoords;
+	// tangent
+	glm::vec3 Tangent;
+	// bitangent
+	glm::vec3 Bitangent;
+	//bone indexes which will influence this vertex
+	int m_BoneIDs[MAX_BONE_INFLUENCE];
+	//weights from each bone
+	float m_Weights[MAX_BONE_INFLUENCE];
+};
+
 namespace Dream {
 	class DreamEngine
 	{
@@ -108,6 +127,7 @@ namespace Dream {
 						std::cout << a[i][j]<< " " ;*/
 				initWindow();
 				initVulkan();
+				initModel();
 				mainLoop();
 				cleanUp();
 			}
@@ -174,6 +194,10 @@ namespace Dream {
 				createSyncObjects();
 			}
 
+			void initModel() {
+				testModel =std::make_shared<DreamAsset::ModelAsset<VertexTest>>("Resources/Models/nanosuit/nanosuit.obj");
+				int a = 3;
+			}
 			void mainLoop() {
 				while (!glfwWindowShouldClose(_window)) {
 					glfwPollEvents();
@@ -183,7 +207,8 @@ namespace Dream {
 			}
 
 			void cleanUp() {	
-				
+				testModel.reset();
+
 				for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 					vkDestroySemaphore(_device, _renderFinishedSemaphores[i], nullptr);
 					vkDestroySemaphore(_device, _imageAvailableSemaphores[i], nullptr);
@@ -1721,6 +1746,7 @@ namespace Dream {
 			VkImageView _depthImageView;
 			VkDeviceMemory _depthImageMemory;
 			VkSampler _textureSampler;
+			std::shared_ptr<DreamAsset::ModelAsset<VertexTest>> testModel;
 			bool framebufferResized = false;
 #ifdef NDEBUG
 			const bool _enableValidationLayers = false;
