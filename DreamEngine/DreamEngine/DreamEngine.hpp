@@ -191,7 +191,7 @@ namespace Dream {
 				}
 				//vkDestroyCommandPool(_device, _commandPool, nullptr);
 				m_graphicsCommandPool.reset();
-				cleanUpSwapChain();
+				cleanUpSwapChain(false);
 				//vkDestroySampler(_device, _textureSampler, nullptr);
 				//vkDestroyImageView(_device, _textureImageView, nullptr);
 				//vkDestroyImage(_device, _textureImage, nullptr);
@@ -255,6 +255,15 @@ namespace Dream {
 
 			void createGraphicsSwapChain() {
 				m_graphicsSwapChain = std::make_shared<Graphics::GraphicsSwapChain>();
+				_swapChain = m_graphicsSwapChain->getswapChain();
+				_swapChainImages = m_graphicsSwapChain->getswapChainImages();
+				_swapChainImageViews = m_graphicsSwapChain->getswapChainImageViews();
+				_swapChainImageFormat = m_graphicsSwapChain->getswapChainImageFormat();
+				_swapChainExtent = m_graphicsSwapChain->getswapChainExtent();
+			}
+
+			void recreateGraphicsSwapChain() {
+				m_graphicsSwapChain->recreateSwapChain();
 				_swapChain = m_graphicsSwapChain->getswapChain();
 				_swapChainImages = m_graphicsSwapChain->getswapChainImages();
 				_swapChainImageViews = m_graphicsSwapChain->getswapChainImageViews();
@@ -1129,7 +1138,7 @@ namespace Dream {
 					}
 				}
 			}
-			void cleanUpSwapChain() {
+			void cleanUpSwapChain(bool recreate) {
 				//vkDestroyImageView(_device, _depthImageView, nullptr);
 				//vkDestroyImage(_device, _depthImage, nullptr);
 				//vkFreeMemory(_device, _depthImageMemory, nullptr);
@@ -1144,10 +1153,14 @@ namespace Dream {
 				//}
 
 				//vkDestroySwapchainKHR(_device, _swapChain, nullptr);
-				m_graphicsSwapChain.reset();
+				if(recreate)
+					m_graphicsSwapChain->release();
+				else
+					m_graphicsSwapChain.reset();
 			}
 			void recreateSwapChain() {
 				int width = 0, height = 0;
+				glfwGetFramebufferSize(_window, &width, &height);
 				while (width == 0 || height == 0) {
 					glfwGetFramebufferSize(_window, &width, &height);
 					glfwWaitEvents();
@@ -1155,11 +1168,10 @@ namespace Dream {
 
 				vkDeviceWaitIdle(_device);
 
-				cleanUpSwapChain();
-				m_graphicsSwapChain.reset();
+				cleanUpSwapChain(true);
 				//createSwapChain();
 				//createImageViews();
-				createGraphicsSwapChain();
+				recreateGraphicsSwapChain();
 				//createDepthResources();
 				createGrahpicsDepthResources();
 				//createFramebuffers();

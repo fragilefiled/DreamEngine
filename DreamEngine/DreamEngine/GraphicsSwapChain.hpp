@@ -56,7 +56,8 @@ namespace Graphics
 
 				m_swapChainImageFormat = surfaceFormat.format;
 				m_swapChainExtent = extent;
-				if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapChain) != VK_SUCCESS)
+				VkResult result;
+				if ((result = vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapChain)) != VK_SUCCESS)
 					throw std::runtime_error("swapChain Create Failed !");
 				vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, nullptr);
 				m_swapChainImages.resize(imageCount);
@@ -121,6 +122,24 @@ namespace Graphics
 
 				vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
 				//暂时先不释放
+			}
+
+			void release() {
+				m_graphicsInstance.reset();
+				for (size_t i = 0; i < m_swapChainImageViews.size(); i++) {
+					vkDestroyImageView(m_device, m_swapChainImageViews[i], nullptr);
+				}
+				vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
+			}
+
+			void recreateSwapChain() {
+				this->m_graphicsInstance = GraphicsDevice::getInstance()->getGraphicsInstance();
+				m_physicalDevice = GraphicsDevice::getInstance()->getPhysicDevice();
+				m_device = GraphicsDevice::getInstance()->getLogicDevice();
+				m_vkSurface = m_graphicsInstance->getSurface();
+				m_window = m_graphicsInstance->getGLTFWindow();
+				createSwapChain();
+				GraphicsDevice::getInstance()->setSwapChainExtent(m_swapChainExtent);
 			}
 	private:
 		VkSurfaceKHR m_vkSurface;
