@@ -13,6 +13,7 @@ namespace Graphics
 				m_vkSurface = m_graphicsInstance->getSurface();
 				m_window = m_graphicsInstance->getGLTFWindow();
 				createSwapChain();
+				GraphicsDevice::getInstance()->setSwapChainExtent(m_swapChainExtent);
 			}
 			void createSwapChain() 
 			{
@@ -114,6 +115,11 @@ namespace Graphics
 			~GraphicsSwapChain() {
 
 				m_graphicsInstance.reset();
+				for (size_t i = 0; i < m_swapChainImageViews.size(); i++) {
+					vkDestroyImageView(m_device, m_swapChainImageViews[i], nullptr);
+				}
+
+				vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
 				//暂时先不释放
 			}
 	private:

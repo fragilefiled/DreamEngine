@@ -33,11 +33,21 @@
 #include "GraphicsRenderPass.hpp"
 #include "GraphicsDescriptorSetLayout.hpp"
 #include "GraphicsPipelineInternal.hpp"
+#include "GraphicsTexture.hpp"
+#include "GraphicsFrameBuffer.hpp"
+#include "GraphicsCommandPool.hpp"
+#include "GraphicsModel.hpp"
+#include "GraphicsUniformBuffer.hpp"
+#include "GraphicsDescriptorPool.hpp"
+#include "GraphicsDescriptorSet.hpp"
+#include "GraphicsSyncObject.hpp"
 namespace Dream {
 	class DreamEngine
 	{
 		const int MAX_FRAMES_IN_FLIGHT = 2;
-		struct Vertex {
+	public:
+		static struct Vertex 
+		{
 			glm::vec3 pos;
 			glm::vec3 color;
 			glm::vec2 texCoord;
@@ -132,19 +142,35 @@ namespace Dream {
 				createGraphicsDescriptorSetLayout();
 				//createGraphicsPipline();
 				createGraphicsPipelineInternal();
-				createDepthResources();
-				createFramebuffers();
-				createCommandPool();
+				//createDepthResources();
+				createGrahpicsDepthResources();
+				//createFramebuffers();
+				createGraphicsFrameBuffers();
+				//createCommandPool();
+				createGraphicsCommandPool();
 
-				createTextureImage();
-				createTextureImageView();
-				createTextureSampler();
-				createVertexBuffer();
-				createIndexBuffer();
-				createUniformBuffers();
-				createDescriptorPool();
-				createDescriptorSets();
-				createCommandBuffers();
+				//createTextureImage();
+				//createTextureImageView();
+				//createTextureSampler();
+				createGraphicsTexture();
+
+
+				//createVertexBuffer();
+				//createIndexBuffer();
+				createGraphicsModel();
+
+				//createUniformBuffers();
+				createGraphicsUniformBuffer();
+
+				//createDescriptorPool();
+				createGraphicsDescriptorPool();
+
+				//createDescriptorSets();
+				createGraphicsDescriptorSets();
+
+				//createCommandBuffers();
+				createGraphicsCommandBuffers();
+
 				createSyncObjects();
 			}
 
@@ -163,23 +189,30 @@ namespace Dream {
 					vkDestroySemaphore(_device, _imageAvailableSemaphores[i], nullptr);
 					vkDestroyFence(_device, _inFlightFences[i], nullptr);
 				}
-				vkDestroyCommandPool(_device, _commandPool, nullptr);
+				//vkDestroyCommandPool(_device, _commandPool, nullptr);
+				m_graphicsCommandPool.reset();
 				cleanUpSwapChain();
-				vkDestroySampler(_device, _textureSampler, nullptr);
-				vkDestroyImageView(_device, _textureImageView, nullptr);
-				vkDestroyImage(_device, _textureImage, nullptr);
-				vkFreeMemory(_device, _textureImageMemory, nullptr);
-				for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-					vkDestroyBuffer(_device, _uniformBuffers[i], nullptr);
-					vkFreeMemory(_device, _uniformBuffersMemory[i], nullptr);
-				}
-				vkDestroyDescriptorPool(_device, _descriptorPool, nullptr);
+				//vkDestroySampler(_device, _textureSampler, nullptr);
+				//vkDestroyImageView(_device, _textureImageView, nullptr);
+				//vkDestroyImage(_device, _textureImage, nullptr);
+				//vkFreeMemory(_device, _textureImageMemory, nullptr);
+				m_graphicsTexture.reset();
+				//for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+				//	vkDestroyBuffer(_device, _uniformBuffers[i], nullptr);
+				//	vkFreeMemory(_device, _uniformBuffersMemory[i], nullptr);
+				//}
+				m_graphicsUniformBuffer.reset();
+
+				//vkDestroyDescriptorPool(_device, _descriptorPool, nullptr);
+				m_graphicsDescriptorPool.reset();
 				//vkDestroyDescriptorSetLayout(_device, _descriptorSetLayout, nullptr);
 				m_graphicsDescriptorSetLayout.reset();
-				vkDestroyBuffer(_device, _vertexBuffer, nullptr);
-				vkFreeMemory(_device, _vertexBufferMemory, nullptr);
-				vkDestroyBuffer(_device, _indexBuffer, nullptr);
-				vkFreeMemory(_device, _indexBufferMemory, nullptr);
+				m_graphicsDescriptorSets.reset();
+				//vkDestroyBuffer(_device, _vertexBuffer, nullptr);
+				//vkFreeMemory(_device, _vertexBufferMemory, nullptr);
+				//vkDestroyBuffer(_device, _indexBuffer, nullptr);
+				//vkFreeMemory(_device, _indexBufferMemory, nullptr);
+				m_graphicsModel.reset();
 				/*for (auto framebuffer : _swapChainFramebuffers) {
 					vkDestroyFramebuffer(_device, framebuffer, nullptr);
 				}
@@ -245,6 +278,66 @@ namespace Dream {
 				_pipelineLayout = m_graphicsPipelineInternal->getPipelineLayout();
 				_graphicsPipeline = m_graphicsPipelineInternal->getPipeline();
 			}
+
+			void createGrahpicsDepthResources() {
+				m_depthResources = std::make_shared <Graphics::GraphicsTexture>(Graphics::GraphicsTexture::TextureType::Depth);
+				_depthImage = m_depthResources->getImage();
+				_depthImageView = m_depthResources->getImageView();
+				_depthImageMemory = m_depthResources->getImageMemory();
+			}
+
+			void createGraphicsFrameBuffers() {
+				m_graphicsFrameBuffer = std::make_shared <Graphics::GraphicsFrameBuffer>(m_graphicsRenderPass, m_graphicsSwapChain, m_depthResources);
+				_swapChainFramebuffers = m_graphicsFrameBuffer->getSwapChainFrameBuffers();
+			}
+
+			void createGraphicsCommandPool() {
+				m_graphicsCommandPool = std::make_shared<Graphics::GraphicsCommandPool>();
+				_commandPool = m_graphicsCommandPool->getCommandPool();
+
+			}
+
+			void createGraphicsTexture() {
+				m_graphicsTexture = std::make_shared<Graphics::GraphicsTexture>(m_graphicsCommandPool->getCommandPool(), VK_IMAGE_ASPECT_COLOR_BIT, VK_FORMAT_R8G8B8A8_SRGB,"Resources/Images/texture.jpg");
+				_textureImage = m_graphicsTexture->getImage();
+				_textureImageView = m_graphicsTexture->getImageView();
+				_textureImageMemory = m_graphicsTexture->getImageMemory();
+				_textureSampler = m_graphicsTexture->getSampler();
+			}
+
+			void createGraphicsModel() {
+
+				m_graphicsModel = std::make_shared<Graphics::GraphicsModel<Vertex>>(m_graphicsCommandPool, vertices, indices);
+				_indexBuffer = m_graphicsModel->getIndexBuffer();
+				_indexBufferMemory = m_graphicsModel->getIndexBufferMemory();
+				_vertexBuffer = m_graphicsModel->getVertexBuffer();
+				_vertexBufferMemory = m_graphicsModel->getVertexBufferMemory();
+			}
+
+			void createGraphicsUniformBuffer() 
+			{
+				m_graphicsUniformBuffer = std::make_shared<Graphics::GraphicsUniformBuffer<UniformBufferObject>>();
+				_uniformBuffers = m_graphicsUniformBuffer->getUniformBuffers();
+				_uniformBuffersMemory = m_graphicsUniformBuffer->getUniformBuffersMemory();
+
+			}
+			void createGraphicsDescriptorPool() {
+				m_graphicsDescriptorPool = std::make_shared<Graphics::GraphicsDescriptorPool>();
+				_descriptorPool = m_graphicsDescriptorPool->getDescriptorPool();
+			}
+
+			void createGraphicsDescriptorSets() {
+				m_graphicsDescriptorSets = std::make_shared<Graphics::GraphicsDescriptorSet>(m_graphicsDescriptorSetLayout
+					,m_graphicsDescriptorPool, m_graphicsTexture, _uniformBuffers, m_graphicsUniformBuffer->getUBOSize());
+				_descriptorSets = m_graphicsDescriptorSets->getDescriptorSets();
+			}
+
+			void createGraphicsCommandBuffers() {
+				m_graphicsCommandBuffers = std::make_shared<Graphics::GraphicsCommandBuffer>(m_graphicsCommandPool);
+				m_graphicsCommandBuffers->createCommandBuffers();
+				_commandBuffers = m_graphicsCommandBuffers->getCommandBufffers();
+			}
+
 			bool checkExtensionSupport() 
 			{
 				uint32_t extensionCount = 0;
@@ -955,7 +1048,19 @@ namespace Dream {
 					throw std::runtime_error("failed to acquire swap chain image!");
 				}
 
-				updateUniformBuffer(currentFrame);
+
+				//updateUniformBuffer(currentFrame);
+				static auto startTime = std::chrono::high_resolution_clock::now();
+
+				auto currentTime = std::chrono::high_resolution_clock::now();
+				float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+				UniformBufferObject ubo{};
+				ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+				ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+				ubo.proj = glm::perspective(glm::radians(45.0f), _swapChainExtent.width / (float)_swapChainExtent.height, 0.1f, 10.0f);
+				ubo.proj[1][1] *= -1; //glm for opengl ,vk's y is inversed
+				m_graphicsUniformBuffer->updateUniformBuffer(currentFrame, ubo);
 
 				vkResetFences(_device, 1, &_inFlightFences[currentFrame]);
 
@@ -1025,18 +1130,21 @@ namespace Dream {
 				}
 			}
 			void cleanUpSwapChain() {
-				vkDestroyImageView(_device, _depthImageView, nullptr);
-				vkDestroyImage(_device, _depthImage, nullptr);
-				vkFreeMemory(_device, _depthImageMemory, nullptr);
-				for (size_t i = 0; i < _swapChainFramebuffers.size(); i++) {
-					vkDestroyFramebuffer(_device, _swapChainFramebuffers[i], nullptr);
-				}
+				//vkDestroyImageView(_device, _depthImageView, nullptr);
+				//vkDestroyImage(_device, _depthImage, nullptr);
+				//vkFreeMemory(_device, _depthImageMemory, nullptr);
+				m_depthResources.reset();
+				//for (size_t i = 0; i < _swapChainFramebuffers.size(); i++) {
+				//	vkDestroyFramebuffer(_device, _swapChainFramebuffers[i], nullptr);
+				//}
+				m_graphicsFrameBuffer.reset();
 
-				for (size_t i = 0; i < _swapChainImageViews.size(); i++) {
-					vkDestroyImageView(_device, _swapChainImageViews[i], nullptr);
-				}
+				//for (size_t i = 0; i < _swapChainImageViews.size(); i++) {
+				//	vkDestroyImageView(_device, _swapChainImageViews[i], nullptr);
+				//}
 
-				vkDestroySwapchainKHR(_device, _swapChain, nullptr);
+				//vkDestroySwapchainKHR(_device, _swapChain, nullptr);
+				m_graphicsSwapChain.reset();
 			}
 			void recreateSwapChain() {
 				int width = 0, height = 0;
@@ -1048,11 +1156,14 @@ namespace Dream {
 				vkDeviceWaitIdle(_device);
 
 				cleanUpSwapChain();
-
-				createSwapChain();
-				createImageViews();
-				createDepthResources();
-				createFramebuffers();
+				m_graphicsSwapChain.reset();
+				//createSwapChain();
+				//createImageViews();
+				createGraphicsSwapChain();
+				//createDepthResources();
+				createGrahpicsDepthResources();
+				//createFramebuffers();
+				createGraphicsFrameBuffers();
 			}
 			uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 
@@ -1611,6 +1722,15 @@ namespace Dream {
 			std::shared_ptr<Graphics::GraphicsRenderPass> m_graphicsRenderPass;
 			std::shared_ptr<Graphics::GraphicsDescriptorSetLayout> m_graphicsDescriptorSetLayout;
 			std::shared_ptr<Graphics::GraphicsPipelineInternal> m_graphicsPipelineInternal;
+			std::shared_ptr<Graphics::GraphicsTexture> m_depthResources;
+			std::shared_ptr<Graphics::GraphicsFrameBuffer> m_graphicsFrameBuffer;
+			std::shared_ptr<Graphics::GraphicsCommandPool> m_graphicsCommandPool;
+			std::shared_ptr<Graphics::GraphicsTexture> m_graphicsTexture;
+			std::shared_ptr<Graphics::GraphicsModel<Vertex>> m_graphicsModel;
+			std::shared_ptr<Graphics::GraphicsUniformBuffer<UniformBufferObject>> m_graphicsUniformBuffer;
+			std::shared_ptr<Graphics::GraphicsDescriptorPool> m_graphicsDescriptorPool;
+			std::shared_ptr<Graphics::GraphicsDescriptorSet> m_graphicsDescriptorSets;
+			std::shared_ptr<Graphics::GraphicsCommandBuffer> m_graphicsCommandBuffers;
 	};
 }
 

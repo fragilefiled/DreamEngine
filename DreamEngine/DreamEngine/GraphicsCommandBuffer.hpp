@@ -1,7 +1,8 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include"GraphicsUtil.hpp"
+#include "GraphicsUtil.h"
 #include "GraphicsInstance.hpp"
+#include "GraphicsCommandPool.hpp"
 namespace Graphics
 {
 	class GraphicsCommandBuffer {
@@ -11,13 +12,33 @@ namespace Graphics
 			m_commandPool = commandPool;
 			m_Queue = queue;
 		}
+		GraphicsCommandBuffer(std::shared_ptr<GraphicsCommandPool> m_graphicsCommandPool) {
+			m_device = GraphicsDevice::getInstance()->getLogicDevice();
+			m_commandPool = m_graphicsCommandPool->getCommandPool();
+			m_Queue = GraphicsDevice::getInstance()->getPresentQueue();
+		}
+
 		VkCommandBuffer beginSingleTimeCommands() {
-			m_commandBuffer = beginSingleTimeCommandsInline(m_device, m_commandPool);
-			return m_commandBuffer;
+			m_commandBuffers.resize(1);
+			m_commandBuffers[0] = beginSingleTimeCommandsInline(m_device, m_commandPool);
+			return m_commandBuffers[0];
 		}
 		void endSingleTimeCommands() 
 		{
-			endSingleTimeCommandsInline(m_commandBuffer, m_device, m_commandPool, m_Queue);
+			endSingleTimeCommandsInline(m_commandBuffers[0], m_device, m_commandPool, m_Queue);
+		}
+
+		void createCommandBuffers() {
+			auto graphicsHelper = GraphicsUtil::getInstance();
+			int MAX_FRAMES_IN_FLIGHT = graphicsHelper->MAX_FRAMES_IN_FLIGHT;
+			m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+			VkCommandBufferAllocateInfo allocInfo{};
+			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+			allocInfo.commandPool = m_commandPool;
+			allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+			allocInfo.commandBufferCount = MAX_FRAMES_IN_FLIGHT;
+			if (vkAllocateCommandBuffers(m_device, &allocInfo, m_commandBuffers.data()) != VK_SUCCESS)
+				throw std::runtime_error("failed to allocate command buffers!");
 		}
 
 	private:
@@ -53,12 +74,30 @@ namespace Graphics
 
 			vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 		}
+	public:
+		void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+			VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+			VkBufferCopy copyRegion{};
+			copyRegion.srcOffset = 0; // Optional
+			copyRegion.dstOffset = 0; // Optional
+			copyRegion.size = size;
+			vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+			endSingleTimeCommands();
+		}
+
+
+
+		std::vector<VkCommandBuffer> getCommandBufffers() {
+			return m_commandBuffers;
+		}
 
 	private:
 		VkCommandPool m_commandPool;
 		VkDevice m_device;
 		VkQueue m_Queue;
-		VkCommandBuffer m_commandBuffer;
+		std::vector<VkCommandBuffer> m_commandBuffers;
 	};
 
 }

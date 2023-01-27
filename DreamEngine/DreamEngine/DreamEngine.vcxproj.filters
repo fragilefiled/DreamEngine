@@ -80,5 +80,26 @@
     <ClInclude Include="GraphicsDescriptorSetLayout.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="GraphicsFrameBuffer.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsCommandPool.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsModel.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsUniformBuffer.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDescriptorPool.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDescriptorSet.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsSyncObject.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

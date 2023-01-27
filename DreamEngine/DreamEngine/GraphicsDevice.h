@@ -106,6 +106,14 @@ namespace Graphics
 			return m_presentQueue;
 		}
 
+		VkExtent2D getSwapChainExtent() {
+			return m_swapChainExtent;
+		}
+
+		void setSwapChainExtent(VkExtent2D extent) {
+			m_swapChainExtent = extent;
+		}
+
 		std::shared_ptr<GraphicsInstance> getGraphicsInstance() 
 		{
 			return m_graphicsInstance;
@@ -129,7 +137,7 @@ namespace Graphics
 		VkDevice m_device;
 		VkSurfaceKHR m_vkSurface;
 		VkInstance m_vkInstance;
-
+		VkExtent2D m_swapChainExtent;
 		
 	};
 

@@ -32,6 +32,7 @@ namespace Graphics
 
 			};
 
+			static const int MAX_FRAMES_IN_FLIGHT = 2;
 
 			static GraphicsUtil* getInstance() {
 				if (m_instance == nullptr) {
@@ -143,6 +144,8 @@ namespace Graphics
 
 				throw std::runtime_error("failed to find supported format!");
 			}
+
+
 			QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR& surface) {
 				QueueFamilyIndices indices;
 				uint32_t queueFamilyCount = 0;
@@ -227,8 +230,26 @@ namespace Graphics
 					throw std::runtime_error("ShaderModule Create Failed !");
 				return shaderModule;
 			}
-
-
+			void createBuffer(VkDeviceSize buffersize, VkBufferUsageFlags bufferusageflags, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory, VkDevice device, VkPhysicalDevice physicalDevice) {
+				VkBufferCreateInfo bufferInfo{};
+				bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+				bufferInfo.size = buffersize;
+				bufferInfo.usage = bufferusageflags;
+				bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+				if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+					throw std::runtime_error("failed to create vertex Buffer!");
+				}
+				VkMemoryRequirements memRequirements;
+				vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+				VkMemoryAllocateInfo allocInfo{};
+				allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+				allocInfo.allocationSize = memRequirements.size;
+				allocInfo.memoryTypeIndex = GraphicsUtil::getInstance()->findMemoryType(memRequirements.memoryTypeBits, properties, physicalDevice);
+				if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+					throw std::runtime_error("failed to alloc vertex Buffer Memory!");
+				}
+				vkBindBufferMemory(device, buffer, bufferMemory, 0);
+			}
 			static void release() {
 				m_instance.reset();
 			}

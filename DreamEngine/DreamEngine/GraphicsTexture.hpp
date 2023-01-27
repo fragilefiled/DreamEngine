@@ -13,26 +13,78 @@
 namespace Graphics
 {
 	class GraphicsTexture {
-
+		
 	public:
-		GraphicsTexture(std::shared_ptr<GraphicsDevice> graphicsDevice, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
-			m_graphicsDevice = graphicsDevice;
-			m_device = graphicsDevice->getLogicDevice();
-			m_physicalDevice = graphicsDevice->getPhysicDevice();
-			m_queue = graphicsDevice->getGraphicsQueue();
+		static enum TextureType
+		{
+			Depth,
+			Default,
+			DepthWithSampler
+		};
+		GraphicsTexture( VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) 
+		{
+			m_device = GraphicsDevice::getInstance()->getLogicDevice();
+			m_physicalDevice = GraphicsDevice::getInstance()->getPhysicDevice();
+			m_queue = GraphicsDevice::getInstance()->getGraphicsQueue();
 			m_commandPool = VK_NULL_HANDLE;
 			m_aspectFlags = aspectFlags;
 			m_imageView = createImageView(image, format, aspectFlags);
 		};
 
-		GraphicsTexture(std::shared_ptr<GraphicsDevice> graphicsDevice, VkFormat format, VkCommandPool commandPool) {
-			m_graphicsDevice = graphicsDevice;
-			m_device = graphicsDevice->getLogicDevice();
-			m_physicalDevice = graphicsDevice->getPhysicDevice();
-			m_queue = graphicsDevice->getGraphicsQueue();
+		GraphicsTexture(VkCommandPool commandPool,VkImageAspectFlags aspectFlags, VkFormat format,std::string path) {
+			m_device = GraphicsDevice::getInstance()->getLogicDevice();
+			m_physicalDevice = GraphicsDevice::getInstance()->getPhysicDevice();
+			m_queue = GraphicsDevice::getInstance()->getGraphicsQueue();
 			m_commandPool = commandPool;
+			m_aspectFlags = aspectFlags;
+			m_format = format;
+			createTextureImage(path);
+			m_imageView = createImageView(m_image, m_format, aspectFlags);
+			createTextureSampler();
+			m_type = Default;
 		};
 
+		GraphicsTexture(TextureType type) {
+			m_device = GraphicsDevice::getInstance()->getLogicDevice();
+			m_physicalDevice = GraphicsDevice::getInstance()->getPhysicDevice();
+			if (type == Depth) {
+				createDepthResources();
+				m_type = type;
+			}
+		};
+
+
+		void createDepthResources() {
+			VkExtent2D swapChainExtent = GraphicsDevice::getInstance()->getSwapChainExtent();
+			VkFormat depthFormat = GraphicsUtil::getInstance()->findDepthFormat(m_physicalDevice);
+			createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_imageMemory);
+			m_imageView = createImageView(m_image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+		}
+
+		void createTextureSampler() {
+			VkSamplerCreateInfo samplerInfo{};
+			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+			samplerInfo.magFilter = VK_FILTER_LINEAR;
+			samplerInfo.minFilter = VK_FILTER_LINEAR;
+			samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			samplerInfo.anisotropyEnable = VK_FALSE;
+			VkPhysicalDeviceProperties properties{};
+			vkGetPhysicalDeviceProperties(m_physicalDevice, &properties);
+			samplerInfo.maxAnisotropy = 1.0F;
+			samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+			samplerInfo.unnormalizedCoordinates = VK_FALSE;
+			samplerInfo.compareEnable = VK_FALSE;
+			samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+			samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+			samplerInfo.mipLodBias = 0.0f;
+			samplerInfo.minLod = 0.0f;
+			samplerInfo.maxLod = 0.0f;
+			if (vkCreateSampler(m_device, &samplerInfo, nullptr, &m_textureSampler) != VK_SUCCESS) {
+				throw std::runtime_error("failed to create texture sampler!");
+			}
+		}
 		void createTextureImage(std::string path) {
 			int texWidth, texHeight, texChannels;
 			stbi_uc* pixels = stbi_load(path.data(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -64,7 +116,6 @@ namespace Graphics
 		}
 		VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
 		{
-
 			return GraphicsTextureUtil::createImageView(m_device ,image, format, aspectFlags);
 		}
 
@@ -232,8 +283,22 @@ namespace Graphics
 			return m_imageView;
 		}
 
+		VkDeviceMemory getImageMemory() {
+			return m_imageMemory;
+		}
+
+		VkSampler getSampler() {
+			return m_textureSampler;
+		}
+
+		~GraphicsTexture() {
+			if(m_type == Default)
+				vkDestroySampler(m_device, m_textureSampler, nullptr);
+			vkDestroyImageView(m_device, m_imageView, nullptr);
+			vkDestroyImage(m_device, m_image, nullptr);
+			vkFreeMemory(m_device, m_imageMemory, nullptr);
+		}
 	private:
-		std::shared_ptr<GraphicsDevice> m_graphicsDevice;
 		VkDevice m_device;
 		VkPhysicalDevice m_physicalDevice;
 		VkImageView m_imageView;
@@ -243,6 +308,8 @@ namespace Graphics
 		VkQueue m_queue;
 		VkFormat m_format;
 		VkImageAspectFlags m_aspectFlags;
+		TextureType m_type;
+		VkSampler m_textureSampler;
 	};
 
 }
