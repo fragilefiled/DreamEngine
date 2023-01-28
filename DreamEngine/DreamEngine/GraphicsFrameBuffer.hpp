@@ -1,6 +1,6 @@
 #pragma once
 #include"GraphicsRenderPass.hpp"
-#include"GraphicsTexture.hpp"
+#include"GraphicsTexture.h"
 namespace Graphics {
 	class GraphicsFrameBuffer 
 	{

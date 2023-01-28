@@ -7,6 +7,7 @@
 #include"glm/glm.hpp"
 #include"glm/ext/matrix_transform.hpp"
 #include"glm/ext/matrix_clip_space.hpp"
+#include "TextureAssetUtil.h"
 #define MAX_BONE_INFLUENCE 4
 
 namespace DreamAsset 
@@ -19,6 +20,7 @@ namespace DreamAsset
         std::vector<uint16_t> indices;
         std::vector<TextureAsset> textures;
         std::vector<uint16_t> textureIndexArray;
+        uint16_t minTextureCount;
         /*  º¯Êý  */
         Mesh(std::vector<Vertex> vertices, std::vector<uint16_t> indices,std::vector<TextureAsset> textures, std::vector<uint16_t> textureIndexArray) {
             this->vertices = vertices;
@@ -29,6 +31,8 @@ namespace DreamAsset
         };
         void release() {
             m_graphicsModel.reset();
+            m_graphicsDescriptorSetLayout.reset();
+            m_graphicsDescriptorSet.reset();
         }
 
         VkBuffer getVertexBuffer() {
@@ -42,10 +46,31 @@ namespace DreamAsset
             m_graphicsModel = std::make_shared<Graphics::GraphicsModel<Vertex>>(vertices, indices);
         }
 
+        void constructGraphicsDescriptorSetLayout() {
+
+            m_graphicsDescriptorSetLayout = std::make_shared<Graphics::GraphicsDescriptorSetLayout>(minTextureCount);
+        }
+        void constructGraphicsDescriptorSets(std::shared_ptr<Graphics::GraphicsDescriptorPool> graphicsDescriptorPool
+            , std::vector<VkBuffer> uniformBuffers, uint16_t uboSize) {
+            while (textures.size() < minTextureCount) {
+                textures.push_back(*(DreamAsset::TextureAssetUtil::m_defaultTextureAsset));
+            }
+            m_graphicsDescriptorSet = std::make_shared<Graphics::GraphicsDescriptorSet>(m_graphicsDescriptorSetLayout
+                , graphicsDescriptorPool, textures, uniformBuffers, uboSize);
+        }
+
+        VkDescriptorSetLayout getVkDescriptorSetLayout() {
+            return m_graphicsDescriptorSetLayout->GetDescriptSetLayout();
+        }
+
+        VkDescriptorSet getVkDescriptorSet(int frame) {
+            return m_graphicsDescriptorSet->getDescriptorSets()[frame];;
+        }
     private:
         std::shared_ptr<Graphics::GraphicsModel<Vertex>> m_graphicsModel;
         /*  º¯Êý  */
-        void setupMesh();
+        std::shared_ptr<Graphics::GraphicsDescriptorSetLayout> m_graphicsDescriptorSetLayout;
+        std::shared_ptr<Graphics::GraphicsDescriptorSet> m_graphicsDescriptorSet;
     };
     template<typename Vertex>
     class ModelAsset
@@ -234,14 +259,15 @@ namespace DreamAsset
         {
             release();
         }
-        void draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, std::vector<std::shared_ptr<Graphics::GraphicsDescriptorSet>> graphcisDescriptorSetsArray, int frame)
+        void draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout,  int frame)
         {
             for (int i = 0; i < meshes.size(); i++) {
                 VkBuffer vertexBuffers[] = { meshes[i].getVertexBuffer() };
                 VkDeviceSize offsets[] = { 0 };
+                VkDescriptorSet descroiptorSet = meshes[i].getVkDescriptorSet(frame);
                 vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
                 vkCmdBindIndexBuffer(commandBuffer, meshes[i].getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
-                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &graphcisDescriptorSetsArray[i]->getDescriptorSets()[frame], 0, nullptr);
+                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descroiptorSet, 0, nullptr);
                 vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(meshes[i].indices.size()), 1, 0, 0, 0);
             }
         }
@@ -262,6 +288,32 @@ namespace DreamAsset
                 }
 
             }
+        }
+
+        void constructGraphicsDescriptorSetLayout() {
+            int minTextureCount = -1;
+            for (int i = 0; i < meshes.size(); i++) {
+                minTextureCount = std::max(minTextureCount, (int)meshes[i].textures.size());
+            }
+            for (int i = 0; i < meshes.size(); i++) {
+                meshes[i].minTextureCount = minTextureCount;
+                meshes[i].constructGraphicsDescriptorSetLayout();
+            }
+        }
+        void constructGraphicsDescriptorSets(std::shared_ptr<Graphics::GraphicsDescriptorPool> graphicsDescriptorPool
+            , std::vector<VkBuffer> uniformBuffers, uint16_t uboSize) {
+            for (int i = 0; i < meshes.size(); i++) {
+                meshes[i].constructGraphicsDescriptorSets(graphicsDescriptorPool, uniformBuffers, uboSize);
+            }
+        }
+
+        std::vector<VkDescriptorSetLayout> getDescriptorSetLayout() {
+            std::vector<VkDescriptorSetLayout> vkDescriptorSetLayouts;
+            vkDescriptorSetLayouts.resize(meshes.size());
+            for (int i = 0; i < meshes.size(); i++) {
+                vkDescriptorSetLayouts[i] = meshes[i].getVkDescriptorSetLayout();
+            }
+            return vkDescriptorSetLayouts;
         }
 
 

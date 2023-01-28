@@ -15,13 +15,12 @@ namespace Graphics
 	class GraphicsPipelineInternal {
 
 	public:
-		GraphicsPipelineInternal(std::shared_ptr<GraphicsRenderPass> graphicsRenderPass, std::shared_ptr<GraphicsDescriptorSetLayout> graphicsDescriptorSetLayout) {
+		GraphicsPipelineInternal(std::shared_ptr<GraphicsRenderPass> graphicsRenderPass, std::vector<VkDescriptorSetLayout> descriptorSetLayouts) {
 			m_device = GraphicsDevice::getInstance()->getLogicDevice();
 			m_graphicsRenderPass = graphicsRenderPass;
-			m_graphicsDescriptorSetLayout = graphicsDescriptorSetLayout;
 			m_graphicsSwapChain = graphicsRenderPass->getGraphicsSwapChain();
 			m_swapChainExtent = m_graphicsSwapChain->getswapChainExtent();
-			m_descriptorSetLayout = graphicsDescriptorSetLayout->GetDescriptSetLayout();
+			m_descriptorSetLayouts = descriptorSetLayouts;
 			m_renderPass = graphicsRenderPass->getRenderPass();
 			createGraphicsPipline();
 		};
@@ -170,8 +169,8 @@ namespace Graphics
 
 			VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 			pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-			pipelineLayoutInfo.setLayoutCount = 1; // Optional
-			pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout; // Optional
+			pipelineLayoutInfo.setLayoutCount = m_descriptorSetLayouts.size(); // Optional
+			pipelineLayoutInfo.pSetLayouts = m_descriptorSetLayouts.data(); // Optional
 			pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 			pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
@@ -242,7 +241,7 @@ namespace Graphics
 		std::shared_ptr<GraphicsSwapChain> m_graphicsSwapChain;
 		std::shared_ptr<GraphicsRenderPass> m_graphicsRenderPass;
 		std::shared_ptr <GraphicsDescriptorSetLayout> m_graphicsDescriptorSetLayout;
-		VkDescriptorSetLayout m_descriptorSetLayout;
+		std::vector<VkDescriptorSetLayout> m_descriptorSetLayouts;
 		VkExtent2D m_swapChainExtent;
 		VkRenderPass m_renderPass;
 		VkPipeline m_pipeline;

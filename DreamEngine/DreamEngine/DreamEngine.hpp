@@ -21,8 +21,6 @@
 #include"glm/glm.hpp"
 #include"glm/ext/matrix_transform.hpp"
 #include"glm/ext/matrix_clip_space.hpp"
-#define STB_IMAGE_IMPLEMENTATION
-#include"stb_image.h" //Can not be used in .h
 #include <array>
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -33,7 +31,7 @@
 #include "GraphicsRenderPass.hpp"
 #include "GraphicsDescriptorSetLayout.hpp"
 #include "GraphicsPipelineInternal.hpp"
-#include "GraphicsTexture.hpp"
+#include "GraphicsTexture.h"
 #include "GraphicsFrameBuffer.hpp"
 #include "GraphicsCommandPool.hpp"
 #include "GraphicsModel.hpp"
@@ -42,6 +40,7 @@
 #include "GraphicsDescriptorSet.hpp"
 #include "GraphicsSyncObject.hpp"
 #include "ModelAsset.hpp"
+#include "TextureAssetUtil.h"
 struct VertexTest
 {
 	// position
@@ -260,6 +259,8 @@ namespace Dream {
 				//vkDestroyImage(_device, _textureImage, nullptr);
 				//vkFreeMemory(_device, _textureImageMemory, nullptr);
 				m_graphicsTexture.reset();
+				DreamAsset::TextureAssetUtil::m_defaultTextureAsset->release();
+				DreamAsset::TextureAssetUtil::m_defaultTextureAsset.reset();
 				//for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 				//	vkDestroyBuffer(_device, _uniformBuffers[i], nullptr);
 				//	vkFreeMemory(_device, _uniformBuffersMemory[i], nullptr);
@@ -269,9 +270,9 @@ namespace Dream {
 				//vkDestroyDescriptorPool(_device, _descriptorPool, nullptr);
 				m_graphicsDescriptorPool.reset();
 				//vkDestroyDescriptorSetLayout(_device, _descriptorSetLayout, nullptr);
-				m_graphicsDescriptorSetLayout.reset();
-				for (int i = 0; i < m_graphicsDescriptorSetArray.size(); i++)
-					m_graphicsDescriptorSetArray[i].reset();
+				//m_graphicsDescriptorSetLayout.reset();
+				//for (int i = 0; i < m_graphicsDescriptorSetArray.size(); i++)
+				//	m_graphicsDescriptorSetArray[i].reset();
 				//vkDestroyBuffer(_device, _vertexBuffer, nullptr);
 				//vkFreeMemory(_device, _vertexBufferMemory, nullptr);
 				//vkDestroyBuffer(_device, _indexBuffer, nullptr);
@@ -342,12 +343,13 @@ namespace Dream {
 			}
 
 			void createGraphicsDescriptorSetLayout() {
-				m_graphicsDescriptorSetLayout = std::make_shared<Graphics::GraphicsDescriptorSetLayout>(3);
-				_descriptorSetLayout = m_graphicsDescriptorSetLayout->GetDescriptSetLayout();
+				//m_graphicsDescriptorSetLayout = std::make_shared<Graphics::GraphicsDescriptorSetLayout>(3);
+				testModel->constructGraphicsDescriptorSetLayout();
+				//_descriptorSetLayout = m_graphicsDescriptorSetLayout->GetDescriptSetLayout();
 			}
 
 			void createGraphicsPipelineInternal() {
-				m_graphicsPipelineInternal = std::make_shared<Graphics::GraphicsPipelineInternal>(m_graphicsRenderPass, m_graphicsDescriptorSetLayout);
+				m_graphicsPipelineInternal = std::make_shared<Graphics::GraphicsPipelineInternal>(m_graphicsRenderPass, testModel->getDescriptorSetLayout());
 				_pipelineLayout = m_graphicsPipelineInternal->getPipelineLayout();
 				_graphicsPipeline = m_graphicsPipelineInternal->getPipeline();
 			}
@@ -372,6 +374,8 @@ namespace Dream {
 
 			void createGraphicsTexture() {
 				m_graphicsTexture = std::make_shared<Graphics::GraphicsTexture>(m_graphicsCommandPool->getCommandPool(), VK_IMAGE_ASPECT_COLOR_BIT, VK_FORMAT_R8G8B8A8_SRGB,"Resources/Images/texture.jpg");
+				DreamAsset::TextureAssetUtil::m_defaultTextureAsset = std::make_shared<DreamAsset::TextureAsset>("default", DreamAsset::TexutreType::Color, DreamAsset::TexutreFormat::R8G8B8A8_SRGB, "Resources/Images/white.png");
+				DreamAsset::TextureAssetUtil::m_defaultTextureAsset->generateGraphicsResources();
 				_textureImage = m_graphicsTexture->getImage();
 				_textureImageView = m_graphicsTexture->getImageView();
 				_textureImageMemory = m_graphicsTexture->getImageMemory();
@@ -400,11 +404,12 @@ namespace Dream {
 			}
 
 			void createGraphicsDescriptorSets() {
-				m_graphicsDescriptorSetArray.resize(testModel->meshes.size());
-				for(int i = 0; i < m_graphicsDescriptorSetArray.size(); i++)
-					m_graphicsDescriptorSetArray[i] = std::make_shared<Graphics::GraphicsDescriptorSet>(m_graphicsDescriptorSetLayout
-						, m_graphicsDescriptorPool, testModel->meshes[i].textures, _uniformBuffers, m_graphicsUniformBuffer->getUBOSize());
+				//m_graphicsDescriptorSetArray.resize(testModel->meshes.size());
+				//for(int i = 0; i < m_graphicsDescriptorSetArray.size(); i++)
+				//	m_graphicsDescriptorSetArray[i] = std::make_shared<Graphics::GraphicsDescriptorSet>(m_graphicsDescriptorSetLayout
+				//		, m_graphicsDescriptorPool, testModel->meshes[i].textures, _uniformBuffers, m_graphicsUniformBuffer->getUBOSize());
 
+				testModel->constructGraphicsDescriptorSets( m_graphicsDescriptorPool, _uniformBuffers, m_graphicsUniformBuffer->getUBOSize());
 				//_descriptorSets = m_graphicsDescriptorSets->getDescriptorSets();
 			}
 
@@ -1096,7 +1101,7 @@ namespace Dream {
 				vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
 
-				testModel->draw(commandBuffer, _pipelineLayout, m_graphicsDescriptorSetArray, currentFrame);
+				testModel->draw(commandBuffer, _pipelineLayout,  currentFrame);
 
 				vkCmdEndRenderPass(commandBuffer);
 				if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -1448,35 +1453,7 @@ namespace Dream {
 				
 			}
 
-			void createTextureImage() {
-				int texWidth, texHeight, texChannels;
-				stbi_uc* pixels = stbi_load("Resources/Images/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-				VkDeviceSize imageSize = texWidth * texHeight * 4;
 
-				if (pixels == nullptr) {
-					throw std::runtime_error("failed to load texture image!");
-				}
-
-				VkBuffer stagingBuffer;
-				VkDeviceMemory stagingBufferMemory;
-				createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-					, stagingBuffer, stagingBufferMemory);
-
-				void* data;
-				vkMapMemory(_device, stagingBufferMemory, 0, imageSize, 0, &data);
-				memcpy(data, pixels, static_cast<size_t>(imageSize));
-				vkUnmapMemory(_device, stagingBufferMemory);
-
-				createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, _textureImage, _textureImageMemory);
-				stbi_image_free(pixels);
-
-				transitionImageLayout(_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-				copyBufferToImage(stagingBuffer, _textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-				transitionImageLayout(_textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-				vkDestroyBuffer(_device, stagingBuffer, nullptr);
-				vkFreeMemory(_device, stagingBufferMemory, nullptr);
-			}
 
 			void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
 				VkImageCreateInfo imageInfo{};
@@ -1794,7 +1771,7 @@ namespace Dream {
 			std::shared_ptr<Graphics::GraphicsInstance> m_graphicsInstance;
 			std::shared_ptr<Graphics::GraphicsSwapChain> m_graphicsSwapChain;
 			std::shared_ptr<Graphics::GraphicsRenderPass> m_graphicsRenderPass;
-			std::shared_ptr<Graphics::GraphicsDescriptorSetLayout> m_graphicsDescriptorSetLayout;
+			//std::shared_ptr<Graphics::GraphicsDescriptorSetLayout> m_graphicsDescriptorSetLayout;
 			std::shared_ptr<Graphics::GraphicsPipelineInternal> m_graphicsPipelineInternal;
 			std::shared_ptr<Graphics::GraphicsTexture> m_depthResources;
 			std::shared_ptr<Graphics::GraphicsFrameBuffer> m_graphicsFrameBuffer;
@@ -1803,9 +1780,9 @@ namespace Dream {
 			std::shared_ptr<Graphics::GraphicsModel<Vertex>> m_graphicsModel;
 			std::shared_ptr<Graphics::GraphicsUniformBuffer<UniformBufferObject>> m_graphicsUniformBuffer;
 			std::shared_ptr<Graphics::GraphicsDescriptorPool> m_graphicsDescriptorPool;
-			std::vector<std::shared_ptr<Graphics::GraphicsDescriptorSet>> m_graphicsDescriptorSetArray;
-			std::shared_ptr<Graphics::GraphicsDescriptorSet> m_graphicsDescriptorSets1;
+			//std::vector<std::shared_ptr<Graphics::GraphicsDescriptorSet>> m_graphicsDescriptorSetArray;
 			std::shared_ptr<Graphics::GraphicsCommandBuffer> m_graphicsCommandBuffers;
+			//std::shared_ptr<DreamAsset::TextureAsset> m_defaultTextureAsset;
 	};
 }
 

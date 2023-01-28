@@ -33,6 +33,12 @@
     <ClCompile Include="GraphicsPipelineInternal.hpp">
       <Filter>头文件</Filter>
     </ClCompile>
+    <ClCompile Include="TextureAssetUtil.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsTexture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DreamEngine.hpp">
@@ -68,7 +74,7 @@
     <ClInclude Include="GraphicsTextureUtil.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicsTexture.hpp">
+    <ClInclude Include="GraphicsTexture.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsBuffer.hpp">
@@ -102,6 +108,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="VertexLayout.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureAssetUtil.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

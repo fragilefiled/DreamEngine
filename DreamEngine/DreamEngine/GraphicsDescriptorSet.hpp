@@ -2,7 +2,7 @@
 #pragma once
 #pragma once
 #include"GraphicsRenderPass.hpp"
-#include"GraphicsTexture.hpp"
+#include"GraphicsTexture.h"
 #include "GraphicsDescriptorPool.hpp"
 #include "GraphicsUniformBuffer.hpp"
 #include "GraphicsDescriptorSetLayout.hpp"

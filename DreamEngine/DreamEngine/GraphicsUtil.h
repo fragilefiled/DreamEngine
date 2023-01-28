@@ -40,6 +40,8 @@ namespace Graphics
 				}
 				return m_instance.get();
 			}
+
+
 			bool checkExtensionSupport()
 			{
 				uint32_t extensionCount = 0;

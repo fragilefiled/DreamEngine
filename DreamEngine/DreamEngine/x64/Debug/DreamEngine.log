@@ -1,34 +1,19 @@
-﻿  GraphicsDevice.cpp
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsDevice.cpp(1,1): warning C4828: 文件包含在偏移 0x8b 处开始的字符，该字符在当前源字符集中无效(代码页 936)。
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(55,23): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(62,15): warning C4018: “<”: 有符号/无符号不匹配
-  GraphicsPipelineInternal.hpp
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(55,23): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(62,15): warning C4018: “<”: 有符号/无符号不匹配
-  GraphicsRenderPass.hpp
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(55,23): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(62,15): warning C4018: “<”: 有符号/无符号不匹配
-  GraphicsUtil.cpp
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.cpp(1,1): warning C4828: 文件包含在偏移 0x85 处开始的字符，该字符在当前源字符集中无效(代码页 936)。
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(55,23): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(62,15): warning C4018: “<”: 有符号/无符号不匹配
-  main.cpp
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(55,23): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(62,15): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsTexture.hpp(23): warning C4091: “static ”: 没有声明变量时忽略“Graphics::GraphicsTexture::TextureType”的左侧
+﻿  main.cpp
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(57,23): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(64,15): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsPipelineInternal.hpp(172,1): warning C4267: “=”: 从“size_t”转换到“uint32_t”，可能丢失数据
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsTexture.h(19): warning C4091: “static ”: 没有声明变量时忽略“Graphics::GraphicsTexture::TextureType”的左侧
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsDescriptorSet.hpp(57,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(130): warning C4091: “static ”: 没有声明变量时忽略“Dream::DreamEngine::Vertex”的左侧
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(429,23): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(436,15): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\ModelAsset.hpp(218,1): warning C4267: “参数”: 从“size_t”转换到“_Ty”，可能丢失数据
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(129): warning C4091: “static ”: 没有声明变量时忽略“Dream::DreamEngine::Vertex”的左侧
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(434,23): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(441,15): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\ModelAsset.hpp(243,1): warning C4267: “参数”: 从“size_t”转换到“_Ty”，可能丢失数据
           with
           [
               _Ty=uint16_t
           ]
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\ModelAsset.hpp(195): message : 在编译 类 模板 成员函数“std::vector<DreamAsset::TextureAsset,std::allocator<DreamAsset::TextureAsset>> DreamAsset::ModelAsset<VertexTest>::loadMaterialTextures(aiMaterial *,aiTextureType,std::string,std::vector<uint16_t,std::allocator<uint16_t>> &)”时
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\ModelAsset.hpp(176): message : 查看对正在编译的函数 模板 实例化“std::vector<DreamAsset::TextureAsset,std::allocator<DreamAsset::TextureAsset>> DreamAsset::ModelAsset<VertexTest>::loadMaterialTextures(aiMaterial *,aiTextureType,std::string,std::vector<uint16_t,std::allocator<uint16_t>> &)”的引用
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(237): message : 查看对正在编译的 类 模板 实例化“DreamAsset::ModelAsset<VertexTest>”的引用
-  Object.cpp
-  正在生成代码...
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\ModelAsset.hpp(220): message : 在编译 类 模板 成员函数“std::vector<DreamAsset::TextureAsset,std::allocator<DreamAsset::TextureAsset>> DreamAsset::ModelAsset<VertexTest>::loadMaterialTextures(aiMaterial *,aiTextureType,std::string,std::vector<uint16_t,std::allocator<uint16_t>> &)”时
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\ModelAsset.hpp(201): message : 查看对正在编译的函数 模板 实例化“std::vector<DreamAsset::TextureAsset,std::allocator<DreamAsset::TextureAsset>> DreamAsset::ModelAsset<VertexTest>::loadMaterialTextures(aiMaterial *,aiTextureType,std::string,std::vector<uint16_t,std::allocator<uint16_t>> &)”的引用
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(236): message : 查看对正在编译的 类 模板 实例化“DreamAsset::ModelAsset<VertexTest>”的引用
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsInstance.hpp(162): warning C4715: “Graphics::GraphicsInstance::createSurface”: 不是所有的控件路径都返回值
   DreamEngine.vcxproj -> E:\AboutLearningSecond\Dream\DreamEngine\x64\Debug\DreamEngine.exe

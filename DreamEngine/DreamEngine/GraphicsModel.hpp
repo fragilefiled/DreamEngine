@@ -1,5 +1,5 @@
 #pragma once
-#include"GraphicsTexture.hpp"
+#include"GraphicsTexture.h"
 #include "GraphicsCommandPool.hpp"
 namespace Graphics {
 	template<typename T>

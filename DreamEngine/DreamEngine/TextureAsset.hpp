@@ -1,6 +1,6 @@
 #pragma once
 #include "Object.h"
-#include "GraphicsTexture.hpp"
+#include "GraphicsTexture.h"
 namespace DreamAsset {
     enum TexutreType {
         Depth,
