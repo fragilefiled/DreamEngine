@@ -18,13 +18,14 @@ namespace DreamAsset
         std::vector<Vertex> vertices;
         std::vector<uint16_t> indices;
         std::vector<TextureAsset> textures;
+        std::vector<uint16_t> textureIndexArray;
         /*  º¯Êý  */
-        Mesh(std::vector<Vertex> vertices, std::vector<uint16_t> indices, std::vector<TextureAsset> textures) {
+        Mesh(std::vector<Vertex> vertices, std::vector<uint16_t> indices,std::vector<TextureAsset> textures, std::vector<uint16_t> textureIndexArray) {
             this->vertices = vertices;
             this->indices = indices;
             this->textures = textures;
-            m_graphicsModel = std::make_shared<Graphics::GraphicsModel<Vertex>>(vertices, indices);
-
+            this->textureIndexArray = textureIndexArray;
+            //generateGraphicsResources();
         };
         void release() {
             m_graphicsModel.reset();
@@ -36,6 +37,11 @@ namespace DreamAsset
         VkBuffer getIndexBuffer() {
             return m_graphicsModel->getIndexBuffer();
         }
+
+        void generateGraphicsResources() {
+            m_graphicsModel = std::make_shared<Graphics::GraphicsModel<Vertex>>(vertices, indices);
+        }
+
     private:
         std::shared_ptr<Graphics::GraphicsModel<Vertex>> m_graphicsModel;
         /*  º¯Êý  */
@@ -165,26 +171,27 @@ namespace DreamAsset
             // specular: texture_specularN
             // normal: texture_normalN
 
+            std::vector<uint16_t> textureIndexArray{};
             // 1. diffuse maps
-            std::vector<TextureAsset> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+            std::vector<TextureAsset> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", textureIndexArray);
             textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
             // 2. specular maps
-            std::vector<TextureAsset> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+            std::vector<TextureAsset> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular", textureIndexArray);
             textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
             // 3. normal maps
-            std::vector<TextureAsset> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+            std::vector<TextureAsset> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal", textureIndexArray);
             textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
             // 4. height maps
-            std::vector<TextureAsset> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+            std::vector<TextureAsset> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height", textureIndexArray);
             textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
             // return a mesh object created from the extracted mesh data
-            return Mesh(vertices, indices, textures);
+            return Mesh(vertices, indices, textures, textureIndexArray);
         }
 
         // checks all material textures of a given type and loads the textures if they're not loaded yet.
         // the required info is returned as a Texture struct.
-        std::vector<TextureAsset> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
+        std::vector<TextureAsset> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName, std::vector<uint16_t>& textureIndexArray)
         {
             std::vector<TextureAsset> textures;
             for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
@@ -200,6 +207,7 @@ namespace DreamAsset
                     if (std::strcmp(textures_loaded[j].name.data(), str.C_Str()) == 0)
                     {
                         textures.push_back(textures_loaded[j]);
+                        textureIndexArray.push_back(j);
                         skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
                         break;
                     }
@@ -207,6 +215,7 @@ namespace DreamAsset
                 if (!skip)
                 {   // if texture hasn't been loaded already, load it
                     TextureAsset texture = TextureAsset(textureName, TexutreType::Color, R8G8B8A8_SRGB, path);
+                    textureIndexArray.push_back(textures_loaded.size());
                     textures.push_back(texture);
                     textures_loaded.push_back(texture);
                 }
@@ -219,10 +228,40 @@ namespace DreamAsset
             for (unsigned int i = 0; i < meshes.size(); i++)
                 meshes[i].release();
         }
+
         public:
         ~ModelAsset() 
         {
             release();
+        }
+        void draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, std::vector<std::shared_ptr<Graphics::GraphicsDescriptorSet>> graphcisDescriptorSetsArray, int frame)
+        {
+            for (int i = 0; i < meshes.size(); i++) {
+                VkBuffer vertexBuffers[] = { meshes[i].getVertexBuffer() };
+                VkDeviceSize offsets[] = { 0 };
+                vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+                vkCmdBindIndexBuffer(commandBuffer, meshes[i].getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &graphcisDescriptorSetsArray[i]->getDescriptorSets()[frame], 0, nullptr);
+                vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(meshes[i].indices.size()), 1, 0, 0, 0);
+            }
+        }
+
+        void generateGraphicsResources() {
+            for (int i = 0; i < textures_loaded.size(); i++) 
+            {
+                textures_loaded[i].generateGraphicsResources();
+            }
+            for (int i = 0; i < meshes.size(); i++) {
+                meshes[i].generateGraphicsResources();
+                for (int j = 0; j < meshes[i].textureIndexArray.size(); j++) 
+                {
+                    uint16_t index = meshes[i].textureIndexArray[j];
+                    meshes[i].textures[j].setGraphicsTexture(textures_loaded[index].getGraphicsTexture());
+                    meshes[i].textures[j].width = textures_loaded[index].width;
+                    meshes[i].textures[j].height = textures_loaded[index].height;
+                }
+
+            }
         }
 
 

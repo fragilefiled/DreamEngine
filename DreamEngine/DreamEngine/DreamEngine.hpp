@@ -178,6 +178,7 @@ namespace Dream {
 				app->framebufferResized = true;
 			}
 			void initVulkan() {
+				initModel();
 				Graphics::GraphicsUtil::getInstance()->checkExtensionSupport();
 				createInstanceAndSurface();
 				//setUpDebugMessenger();
@@ -210,7 +211,8 @@ namespace Dream {
 				//createVertexBuffer();
 				//createIndexBuffer();
 				createGraphicsModel();
-				initModel();
+				generateGraphisResources();
+				
 				//createUniformBuffers();
 				createGraphicsUniformBuffer();
 
@@ -229,6 +231,10 @@ namespace Dream {
 			void initModel() {
 				testModel =std::make_shared<DreamAsset::ModelAsset<VertexTest>>("Resources/Models/nanosuit/nanosuit.obj");
 				int a = 3;
+			}
+
+			void generateGraphisResources() {
+				testModel->generateGraphicsResources();
 			}
 			void mainLoop() {
 				while (!glfwWindowShouldClose(_window)) {
@@ -264,7 +270,8 @@ namespace Dream {
 				m_graphicsDescriptorPool.reset();
 				//vkDestroyDescriptorSetLayout(_device, _descriptorSetLayout, nullptr);
 				m_graphicsDescriptorSetLayout.reset();
-				m_graphicsDescriptorSets.reset();
+				for (int i = 0; i < m_graphicsDescriptorSetArray.size(); i++)
+					m_graphicsDescriptorSetArray[i].reset();
 				//vkDestroyBuffer(_device, _vertexBuffer, nullptr);
 				//vkFreeMemory(_device, _vertexBufferMemory, nullptr);
 				//vkDestroyBuffer(_device, _indexBuffer, nullptr);
@@ -335,7 +342,7 @@ namespace Dream {
 			}
 
 			void createGraphicsDescriptorSetLayout() {
-				m_graphicsDescriptorSetLayout = std::make_shared<Graphics::GraphicsDescriptorSetLayout>();
+				m_graphicsDescriptorSetLayout = std::make_shared<Graphics::GraphicsDescriptorSetLayout>(3);
 				_descriptorSetLayout = m_graphicsDescriptorSetLayout->GetDescriptSetLayout();
 			}
 
@@ -393,9 +400,12 @@ namespace Dream {
 			}
 
 			void createGraphicsDescriptorSets() {
-				m_graphicsDescriptorSets = std::make_shared<Graphics::GraphicsDescriptorSet>(m_graphicsDescriptorSetLayout
-					,m_graphicsDescriptorPool, m_graphicsTexture, _uniformBuffers, m_graphicsUniformBuffer->getUBOSize());
-				_descriptorSets = m_graphicsDescriptorSets->getDescriptorSets();
+				m_graphicsDescriptorSetArray.resize(testModel->meshes.size());
+				for(int i = 0; i < m_graphicsDescriptorSetArray.size(); i++)
+					m_graphicsDescriptorSetArray[i] = std::make_shared<Graphics::GraphicsDescriptorSet>(m_graphicsDescriptorSetLayout
+						, m_graphicsDescriptorPool, testModel->meshes[i].textures, _uniformBuffers, m_graphicsUniformBuffer->getUBOSize());
+
+				//_descriptorSets = m_graphicsDescriptorSets->getDescriptorSets();
 			}
 
 			void createGraphicsCommandBuffers() {
@@ -1085,17 +1095,9 @@ namespace Dream {
 				renderPassInfo.pClearValues = clearValues.data();
 				vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
-				//VkBuffer vertexBuffers[] = { _vertexBuffer };
-				VkBuffer vertexBuffers[] = { testModel->meshes[1].getVertexBuffer()};
-				VkDeviceSize offsets[] = { 0 };
-				vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-				//vkCmdBindIndexBuffer(commandBuffer, _indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-				vkCmdBindIndexBuffer(commandBuffer, testModel->meshes[1].getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
 
-				//vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
-				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[currentFrame], 0, nullptr);
-				//vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
-				vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(testModel->meshes[1].indices.size()), 1, 0, 0, 0);
+				testModel->draw(commandBuffer, _pipelineLayout, m_graphicsDescriptorSetArray, currentFrame);
+
 				vkCmdEndRenderPass(commandBuffer);
 				if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 					throw std::runtime_error("failed to record command buffer!");
@@ -1125,7 +1127,7 @@ namespace Dream {
 
 				UniformBufferObject ubo{};
 				ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-				ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 				ubo.proj = glm::perspective(glm::radians(45.0f), _swapChainExtent.width / (float)_swapChainExtent.height, 0.1f, 10.0f);
 				ubo.proj[1][1] *= -1; //glm for opengl ,vk's y is inversed
 				m_graphicsUniformBuffer->updateUniformBuffer(currentFrame, ubo);
@@ -1801,7 +1803,8 @@ namespace Dream {
 			std::shared_ptr<Graphics::GraphicsModel<Vertex>> m_graphicsModel;
 			std::shared_ptr<Graphics::GraphicsUniformBuffer<UniformBufferObject>> m_graphicsUniformBuffer;
 			std::shared_ptr<Graphics::GraphicsDescriptorPool> m_graphicsDescriptorPool;
-			std::shared_ptr<Graphics::GraphicsDescriptorSet> m_graphicsDescriptorSets;
+			std::vector<std::shared_ptr<Graphics::GraphicsDescriptorSet>> m_graphicsDescriptorSetArray;
+			std::shared_ptr<Graphics::GraphicsDescriptorSet> m_graphicsDescriptorSets1;
 			std::shared_ptr<Graphics::GraphicsCommandBuffer> m_graphicsCommandBuffers;
 	};
 }

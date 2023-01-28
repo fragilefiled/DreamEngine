@@ -23,17 +23,29 @@ namespace DreamAsset {
                 this->name = name;
                 this->type = type;
                 this->format = format;
-                if (format == R8G8B8A8_SRGB) {
+                //generateGraphicsResources()
+            };
+
+            void release() {
+                m_graphicsTexture.reset();
+            }
+
+            void generateGraphicsResources() 
+            {
+                if (format == R8G8B8A8_SRGB)
+                {
                     VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
                     VkFormat rhiFormat = VK_FORMAT_R8G8B8A8_SRGB;
                     m_graphicsTexture = std::make_shared<Graphics::GraphicsTexture>(Graphics::GraphicsUtil::getInstance()->getMainCommandPool(), aspectFlags, rhiFormat, path);
                     width = m_graphicsTexture->getWidth();
                     height = m_graphicsTexture->getHeight();
                 }
-            };
-
-            void release() {
-                m_graphicsTexture.reset();
+            }
+            std::shared_ptr<Graphics::GraphicsTexture> getGraphicsTexture() {
+                return m_graphicsTexture;
+            }
+            void setGraphicsTexture(std::shared_ptr<Graphics::GraphicsTexture> graphicsTexture) {
+                m_graphicsTexture = graphicsTexture;
             }
 
         private:

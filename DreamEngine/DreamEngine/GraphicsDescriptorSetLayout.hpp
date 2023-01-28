@@ -14,10 +14,12 @@ namespace Graphics
 	{
 
 	public:
-		GraphicsDescriptorSetLayout()
+		GraphicsDescriptorSetLayout(int textureSize)
 		{
 			m_device = GraphicsDevice::getInstance()->getLogicDevice();
+			m_textureSize = textureSize;
 			createDescriptorSetLayout();
+			
 		};
 		void createDescriptorSetLayout()
 		{
@@ -27,15 +29,33 @@ namespace Graphics
 			uboLayoutBinding.descriptorCount = 1;
 			uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 			uboLayoutBinding.pImmutableSamplers = nullptr;
+			std::vector<VkDescriptorSetLayoutBinding> bindings;
+			bindings.resize(m_textureSize + 1);
+			bindings[0] = (uboLayoutBinding);
+			for (int i = 0; i < m_textureSize; i++) {
+				//VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+				//samplerLayoutBinding.binding = 1;
+				//samplerLayoutBinding.descriptorCount = 1;
+				//samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				//samplerLayoutBinding.pImmutableSamplers = nullptr;
+				//samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-			VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-			samplerLayoutBinding.binding = 1;
-			samplerLayoutBinding.descriptorCount = 1;
-			samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			samplerLayoutBinding.pImmutableSamplers = nullptr;
-			samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+				//std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+				//VkDescriptorSetLayoutCreateInfo layoutInfo{};
+				//layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+				//layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+				//layoutInfo.pBindings = bindings.data();
 
-			std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+				VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+				samplerLayoutBinding.binding = i + 1;
+				samplerLayoutBinding.descriptorCount = 1;
+				samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				samplerLayoutBinding.pImmutableSamplers = nullptr;
+				samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+				bindings[i + 1] = (samplerLayoutBinding);
+
+			}
+
 			VkDescriptorSetLayoutCreateInfo layoutInfo{};
 			layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 			layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -55,6 +75,7 @@ namespace Graphics
 	private:
 		VkDevice m_device;
 		VkDescriptorSetLayout m_descriptorSetLayout;
+		int m_textureSize;
 
 	};
 
