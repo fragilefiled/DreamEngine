@@ -9,6 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #endif
 #include "GraphicsDescriptorSetLayout.hpp"
+#include"VertexLayout.hpp"
 namespace Graphics
 {
 	class GraphicsPipelineInternal {
@@ -56,8 +57,8 @@ namespace Graphics
 		};
 		void createGraphicsPipline() {
 
-			auto vertShaderCode = FileOperation::readfile("Resources/Shaders/shader1.vert.spv");
-			auto fragShaderCode = FileOperation::readfile("Resources/Shaders/shader1.frag.spv");
+			auto vertShaderCode = FileOperation::readfile("Resources/Shaders/shader2.vert.spv");
+			auto fragShaderCode = FileOperation::readfile("Resources/Shaders/shader2.frag.spv");
 			VkShaderModule vertShaderModule = GraphicsUtil::getInstance()->createShaderModule(m_device, vertShaderCode);
 			VkShaderModule fragShaderModule = GraphicsUtil::getInstance()->createShaderModule(m_device, fragShaderCode);
 
@@ -85,9 +86,10 @@ namespace Graphics
 			dynamicStateInfo.pDynamicStates = dynamicStates.data();
 			dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
 
-			auto bindingDescription = Vertex::getBindingDescription();
-			auto attributeDescription = Vertex::getAttributeDescriptions();
-
+			//auto bindingDescription = Vertex::getBindingDescription();
+			//auto attributeDescription = Vertex::getAttributeDescriptions();
+			auto bindingDescription = VertexLayout::VertexTest::getBindingDescription();
+			auto attributeDescription = VertexLayout::VertexTest::getAttributeDescriptions();
 
 			VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 			vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

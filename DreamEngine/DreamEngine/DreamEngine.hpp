@@ -54,10 +54,42 @@ struct VertexTest
 	glm::vec3 Tangent;
 	// bitangent
 	glm::vec3 Bitangent;
-	//bone indexes which will influence this vertex
-	int m_BoneIDs[MAX_BONE_INFLUENCE];
-	//weights from each bone
-	float m_Weights[MAX_BONE_INFLUENCE];
+
+	static VkVertexInputBindingDescription getBindingDescription() {
+		VkVertexInputBindingDescription bindingDescription{};
+		bindingDescription.binding = 0;
+		bindingDescription.stride = sizeof(VertexTest);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		return bindingDescription;
+	}
+	static std::array<VkVertexInputAttributeDescription, 5> getAttributeDescriptions() {
+		std::array<VkVertexInputAttributeDescription, 5> attributeDescriptions{};
+		attributeDescriptions[0].binding = 0;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(VertexTest, Position);
+
+		attributeDescriptions[1].binding = 0;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(VertexTest, Normal);
+
+		attributeDescriptions[2].binding = 0;
+		attributeDescriptions[2].location = 2;
+		attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[2].offset = offsetof(VertexTest, TexCoords);
+
+		attributeDescriptions[3].binding = 0;
+		attributeDescriptions[3].location = 3;
+		attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[3].offset = offsetof(VertexTest, Tangent);
+
+		attributeDescriptions[4].binding = 0;
+		attributeDescriptions[4].location = 4;
+		attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[4].offset = offsetof(VertexTest, Bitangent);
+		return attributeDescriptions;
+	}
 };
 
 namespace Dream {
@@ -127,7 +159,7 @@ namespace Dream {
 						std::cout << a[i][j]<< " " ;*/
 				initWindow();
 				initVulkan();
-				initModel();
+				
 				mainLoop();
 				cleanUp();
 			}
@@ -178,7 +210,7 @@ namespace Dream {
 				//createVertexBuffer();
 				//createIndexBuffer();
 				createGraphicsModel();
-
+				initModel();
 				//createUniformBuffers();
 				createGraphicsUniformBuffer();
 
@@ -341,7 +373,7 @@ namespace Dream {
 
 			void createGraphicsModel() {
 
-				m_graphicsModel = std::make_shared<Graphics::GraphicsModel<Vertex>>(m_graphicsCommandPool, vertices, indices);
+				m_graphicsModel = std::make_shared<Graphics::GraphicsModel<Vertex>>(vertices, indices);
 				_indexBuffer = m_graphicsModel->getIndexBuffer();
 				_indexBufferMemory = m_graphicsModel->getIndexBufferMemory();
 				_vertexBuffer = m_graphicsModel->getVertexBuffer();
@@ -1025,6 +1057,19 @@ namespace Dream {
 					throw std::runtime_error("failed to begin recording command buffer!");
 				}
 
+				VkViewport viewport{};
+				viewport.x = 0.0f;
+				viewport.y = 0.0f;
+				viewport.width = static_cast<float>(_swapChainExtent.width);
+				viewport.height = static_cast<float>(_swapChainExtent.height);
+				viewport.minDepth = 0.0f;
+				viewport.maxDepth = 1.0f;
+				vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+				VkRect2D scissor{};
+				scissor.offset = { 0, 0 };
+				scissor.extent = _swapChainExtent;
+				vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 				VkRenderPassBeginInfo renderPassInfo{};
 				renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -1040,28 +1085,17 @@ namespace Dream {
 				renderPassInfo.pClearValues = clearValues.data();
 				vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
-				VkBuffer vertexBuffers[] = { _vertexBuffer };
+				//VkBuffer vertexBuffers[] = { _vertexBuffer };
+				VkBuffer vertexBuffers[] = { testModel->meshes[1].getVertexBuffer()};
 				VkDeviceSize offsets[] = { 0 };
 				vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-				vkCmdBindIndexBuffer(commandBuffer, _indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-
-				VkViewport viewport{};
-				viewport.x = 0.0f;
-				viewport.y = 0.0f;
-				viewport.width = static_cast<float>(_swapChainExtent.width);
-				viewport.height = static_cast<float>(_swapChainExtent.height);
-				viewport.minDepth = 0.0f;
-				viewport.maxDepth = 1.0f;
-				vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-				VkRect2D scissor{};
-				scissor.offset = { 0, 0 };
-				scissor.extent = _swapChainExtent;
-				vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+				//vkCmdBindIndexBuffer(commandBuffer, _indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+				vkCmdBindIndexBuffer(commandBuffer, testModel->meshes[1].getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
 
 				//vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[currentFrame], 0, nullptr);
-				vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+				//vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+				vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(testModel->meshes[1].indices.size()), 1, 0, 0, 0);
 				vkCmdEndRenderPass(commandBuffer);
 				if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 					throw std::runtime_error("failed to record command buffer!");
@@ -1091,7 +1125,7 @@ namespace Dream {
 
 				UniformBufferObject ubo{};
 				ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-				ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+				ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 				ubo.proj = glm::perspective(glm::radians(45.0f), _swapChainExtent.width / (float)_swapChainExtent.height, 0.1f, 10.0f);
 				ubo.proj[1][1] *= -1; //glm for opengl ,vk's y is inversed
 				m_graphicsUniformBuffer->updateUniformBuffer(currentFrame, ubo);
@@ -1268,7 +1302,7 @@ namespace Dream {
 				vkFreeMemory(_device, stagingBufferMemory, nullptr);
 			}
 			void createIndexBuffer() {
-				VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+				VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 				VkBuffer stagingBuffer;
 				VkDeviceMemory stagingBufferMemory;
 

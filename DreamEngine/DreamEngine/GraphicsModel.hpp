@@ -6,10 +6,10 @@ namespace Graphics {
 	class GraphicsModel
 	{
 	public:
-		GraphicsModel(std::shared_ptr<GraphicsCommandPool> m_graphicsCommandPool, std::vector<T> vertices, std::vector<uint16_t> indices)
+		GraphicsModel( std::vector<T> vertices, std::vector<uint16_t> indices)
 		{
 			m_device = GraphicsDevice::getInstance()->getLogicDevice();
-			m_commandPool = m_graphicsCommandPool->getCommandPool();
+			m_commandPool = Graphics::GraphicsUtil::getInstance()->getMainCommandPool();
 			m_queue = GraphicsDevice::getInstance()->getGraphicsQueue();
 			m_vertices = vertices;
 			m_indices = indices;
@@ -43,7 +43,7 @@ namespace Graphics {
 		}
 		void createIndexBuffer(GraphicsCommandBuffer tempCmd) {
 			auto graphicsHelper = GraphicsUtil::getInstance();
-			VkDeviceSize bufferSize = sizeof(m_vertices[0]) * m_vertices.size();
+			VkDeviceSize bufferSize = sizeof(m_indices[0]) * m_indices.size();
 			VkBuffer stagingBuffer;
 			VkDeviceMemory stagingBufferMemory;
 

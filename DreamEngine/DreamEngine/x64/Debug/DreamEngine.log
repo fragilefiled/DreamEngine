@@ -1,14 +1,9 @@
-﻿  GraphicsPipelineInternal.hpp
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(55,23): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(62,15): warning C4018: “<”: 有符号/无符号不匹配
-  main.cpp
+﻿  main.cpp
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(55,23): warning C4018: “<”: 有符号/无符号不匹配
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(62,15): warning C4018: “<”: 有符号/无符号不匹配
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsTexture.hpp(23): warning C4091: “static ”: 没有声明变量时忽略“Graphics::GraphicsTexture::TextureType”的左侧
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(98): warning C4091: “static ”: 没有声明变量时忽略“Dream::DreamEngine::Vertex”的左侧
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(387,23): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(394,15): warning C4018: “<”: 有符号/无符号不匹配
-  Object.cpp
-  正在生成代码...
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(130): warning C4091: “static ”: 没有声明变量时忽略“Dream::DreamEngine::Vertex”的左侧
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(419,23): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(426,15): warning C4018: “<”: 有符号/无符号不匹配
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsInstance.hpp(162): warning C4715: “Graphics::GraphicsInstance::createSurface”: 不是所有的控件路径都返回值
   DreamEngine.vcxproj -> E:\AboutLearningSecond\Dream\DreamEngine\x64\Debug\DreamEngine.exe

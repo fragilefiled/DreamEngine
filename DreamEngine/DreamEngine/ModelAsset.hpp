@@ -16,16 +16,28 @@ namespace DreamAsset
     public:
         /*  网格数据  */
         std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
+        std::vector<uint16_t> indices;
         std::vector<TextureAsset> textures;
         /*  函数  */
-        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<TextureAsset> textures) {
+        Mesh(std::vector<Vertex> vertices, std::vector<uint16_t> indices, std::vector<TextureAsset> textures) {
             this->vertices = vertices;
             this->indices = indices;
             this->textures = textures;
+            m_graphicsModel = std::make_shared<Graphics::GraphicsModel<Vertex>>(vertices, indices);
 
         };
+        void release() {
+            m_graphicsModel.reset();
+        }
+
+        VkBuffer getVertexBuffer() {
+            return m_graphicsModel->getVertexBuffer();
+        }
+        VkBuffer getIndexBuffer() {
+            return m_graphicsModel->getIndexBuffer();
+        }
     private:
+        std::shared_ptr<Graphics::GraphicsModel<Vertex>> m_graphicsModel;
         /*  函数  */
         void setupMesh();
     };
@@ -90,7 +102,7 @@ namespace DreamAsset
         {
             // data to fill
             std::vector<Vertex> vertices;
-            std::vector<unsigned int> indices;
+            std::vector<uint16_t> indices;
             std::vector<TextureAsset> textures;
 
             // walk through each of the mesh's vertices
@@ -204,6 +216,8 @@ namespace DreamAsset
         void release() {
             for (unsigned int i = 0; i < textures_loaded.size(); i++)
                 textures_loaded[i].release();
+            for (unsigned int i = 0; i < meshes.size(); i++)
+                meshes[i].release();
         }
         public:
         ~ModelAsset() 
