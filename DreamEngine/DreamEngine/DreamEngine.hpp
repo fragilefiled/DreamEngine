@@ -41,6 +41,8 @@
 #include "GraphicsSyncObject.hpp"
 #include "ModelAsset.hpp"
 #include "TextureAssetUtil.h"
+#include "Camera.hpp"
+
 struct VertexTest
 {
 	// position
@@ -163,6 +165,15 @@ namespace Dream {
 				cleanUp();
 			}
 		private :
+			void initCamera() {
+				// camera
+				glm::vec3 cameraPos = glm::vec3(2.0f, 2.0f, 15.0f);
+				glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+				glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+				float fovy = 45;
+				m_camera = std::make_shared<DreamCamera::Camera>(cameraPos, cameraFront, cameraUp, fovy, _swapChainExtent.width / (float)_swapChainExtent.height, 0.1f, 200.0f, 3.0f);
+
+			}
 			void initWindow() {
 				glfwInit();
 
@@ -171,6 +182,7 @@ namespace Dream {
 				_window = glfwCreateWindow(WIDTH, HEIGHT, "DreamEngine", nullptr, nullptr);
 				glfwSetWindowUserPointer(_window, this);
 				glfwSetFramebufferSizeCallback(_window, framebufferResizeCallback);
+				//glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			}
 			static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 				auto app = reinterpret_cast<DreamEngine*>(glfwGetWindowUserPointer(window));
@@ -188,6 +200,7 @@ namespace Dream {
 				//createSwapChain();
 				//createImageViews();
 				createGraphicsSwapChain();
+				initCamera();
 				//createRenderPass();
 				createGraphcisRenderPass();
 				//createDescriptorSetLayout();
@@ -238,6 +251,7 @@ namespace Dream {
 			void mainLoop() {
 				while (!glfwWindowShouldClose(_window)) {
 					glfwPollEvents();
+					logicUpdate();
 					drawFrame();
 				}
 				vkDeviceWaitIdle(_device);
@@ -245,7 +259,7 @@ namespace Dream {
 
 			void cleanUp() {	
 				testModel.reset();
-
+				m_camera.reset();
 				for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 					vkDestroySemaphore(_device, _renderFinishedSemaphores[i], nullptr);
 					vkDestroySemaphore(_device, _imageAvailableSemaphores[i], nullptr);
@@ -324,7 +338,7 @@ namespace Dream {
 				_swapChainImages = m_graphicsSwapChain->getswapChainImages();
 				_swapChainImageViews = m_graphicsSwapChain->getswapChainImageViews();
 				_swapChainImageFormat = m_graphicsSwapChain->getswapChainImageFormat();
-				_swapChainExtent = m_graphicsSwapChain->getswapChainExtent();
+				_swapChainExtent = m_graphicsSwapChain->getswapChainExtent(); 
 			}
 
 			void recreateGraphicsSwapChain() {
@@ -1108,7 +1122,11 @@ namespace Dream {
 					throw std::runtime_error("failed to record command buffer!");
 				}
 			}
-
+			void logicUpdate() {
+				glfwSetMouseButtonCallback(_window, mouse_button_callback);
+				getMouseState(_window);
+				m_camera->processInput(_window);
+			}
 			void drawFrame() {
 				vkWaitForFences(_device, 1, &_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
@@ -1131,10 +1149,12 @@ namespace Dream {
 				float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
 				UniformBufferObject ubo{};
-				ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-				ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-				ubo.proj = glm::perspective(glm::radians(45.0f), _swapChainExtent.width / (float)_swapChainExtent.height, 0.1f, 10.0f);
-				ubo.proj[1][1] *= -1; //glm for opengl ,vk's y is inversed
+				ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				//ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				//ubo.proj = glm::perspective(glm::radians(45.0f), _swapChainExtent.width / (float)_swapChainExtent.height, 0.1f, 10.0f);
+				//ubo.proj[1][1] *= -1; //glm for opengl ,vk's y is inversed
+				ubo.view = m_camera->getViewMat();
+				ubo.proj = m_camera->getProjMat();
 				m_graphicsUniformBuffer->updateUniformBuffer(currentFrame, ubo);
 
 				vkResetFences(_device, 1, &_inFlightFences[currentFrame]);
@@ -1783,6 +1803,8 @@ namespace Dream {
 			//std::vector<std::shared_ptr<Graphics::GraphicsDescriptorSet>> m_graphicsDescriptorSetArray;
 			std::shared_ptr<Graphics::GraphicsCommandBuffer> m_graphicsCommandBuffers;
 			//std::shared_ptr<DreamAsset::TextureAsset> m_defaultTextureAsset;
+			std::shared_ptr<DreamCamera::Camera> m_camera;
+
 	};
 }
 

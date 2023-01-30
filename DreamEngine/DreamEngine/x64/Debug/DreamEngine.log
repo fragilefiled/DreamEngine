@@ -4,9 +4,14 @@ E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsUtil.h(64,15): warn
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsPipelineInternal.hpp(172,1): warning C4267: “=”: 从“size_t”转换到“uint32_t”，可能丢失数据
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsTexture.h(19): warning C4091: “static ”: 没有声明变量时忽略“Graphics::GraphicsTexture::TextureType”的左侧
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsDescriptorSet.hpp(57,1): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(129): warning C4091: “static ”: 没有声明变量时忽略“Dream::DreamEngine::Vertex”的左侧
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(434,23): warning C4018: “<”: 有符号/无符号不匹配
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(441,15): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\InputManager.hpp(12): warning C4091: “static ”: 没有声明变量时忽略“Input::InputManager::KeyWordOperation”的左侧
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\InputManager.hpp(19): warning C4091: “static ”: 没有声明变量时忽略“Input::InputManager::Key”的左侧
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GlobalFunction.h(18,15): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\Camera.hpp(51,23): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\Camera.hpp(127,13): warning C4244: “-=”: 从“double”转换到“float”，可能丢失数据
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(131): warning C4091: “static ”: 没有声明变量时忽略“Dream::DreamEngine::Vertex”的左侧
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(448,23): warning C4018: “<”: 有符号/无符号不匹配
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(455,15): warning C4018: “<”: 有符号/无符号不匹配
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\ModelAsset.hpp(243,1): warning C4267: “参数”: 从“size_t”转换到“_Ty”，可能丢失数据
           with
           [
@@ -14,6 +19,6 @@ E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\ModelAsset.hpp(243,1): warn
           ]
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\ModelAsset.hpp(220): message : 在编译 类 模板 成员函数“std::vector<DreamAsset::TextureAsset,std::allocator<DreamAsset::TextureAsset>> DreamAsset::ModelAsset<VertexTest>::loadMaterialTextures(aiMaterial *,aiTextureType,std::string,std::vector<uint16_t,std::allocator<uint16_t>> &)”时
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\ModelAsset.hpp(201): message : 查看对正在编译的函数 模板 实例化“std::vector<DreamAsset::TextureAsset,std::allocator<DreamAsset::TextureAsset>> DreamAsset::ModelAsset<VertexTest>::loadMaterialTextures(aiMaterial *,aiTextureType,std::string,std::vector<uint16_t,std::allocator<uint16_t>> &)”的引用
-E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(236): message : 查看对正在编译的 类 模板 实例化“DreamAsset::ModelAsset<VertexTest>”的引用
+E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\DreamEngine.hpp(249): message : 查看对正在编译的 类 模板 实例化“DreamAsset::ModelAsset<VertexTest>”的引用
 E:\AboutLearningSecond\Dream\DreamEngine\DreamEngine\GraphicsInstance.hpp(162): warning C4715: “Graphics::GraphicsInstance::createSurface”: 不是所有的控件路径都返回值
   DreamEngine.vcxproj -> E:\AboutLearningSecond\Dream\DreamEngine\x64\Debug\DreamEngine.exe
